@@ -22,9 +22,15 @@ class InputScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.background,
+      resizeToAvoidBottomInset: false,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back_ios_new,
+              color: AppColors.textPrimary),
+          onPressed: () => Get.back(),
+        ),
         actions: [
           IconButton(
             icon: const Icon(Icons.category, color: AppColors.textPrimary),
@@ -44,37 +50,20 @@ class InputScreen extends StatelessWidget {
         ],
       ),
       body: SafeArea(
-        child: CustomScrollView(
-          physics: const BouncingScrollPhysics(),
-          slivers: [
-            SliverFillRemaining(
-              hasScrollBody: false,
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Column(
-                    children: [
-                      BalanceCard()
-                          .animate()
-                          .fadeIn(delay: 100.ms)
-                          .slideY(begin: -0.2, end: 0),
-                      TypeToggle()
-                          .animate()
-                          .fadeIn(delay: 150.ms)
-                          .slideX(begin: -0.1, end: 0),
-                    ],
-                  ),
-                  AmountDisplay(),
-                  Column(
-                    children: [
-                      NoteInput().animate().fadeIn(delay: 220.ms),
-                      CategoryRow().animate().fadeIn(delay: 250.ms),
-                      NumpadGrid(),
-                    ],
-                  ),
-                ],
-              ),
-            ),
+        child: Column(
+          children: [
+            BalanceCard()
+                .animate()
+                .fadeIn(delay: 100.ms)
+                .slideY(begin: -0.2, end: 0),
+            TypeToggle()
+                .animate()
+                .fadeIn(delay: 150.ms)
+                .slideX(begin: -0.1, end: 0),
+            Expanded(flex: 3, child: AmountDisplay()),
+            NoteInput().animate().fadeIn(delay: 220.ms),
+            CategoryRow().animate().fadeIn(delay: 250.ms),
+            Expanded(flex: 6, child: NumpadGrid()),
           ],
         ),
       ),

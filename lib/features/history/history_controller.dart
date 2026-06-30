@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../data/database_service.dart';
 import '../../data/models/transaction.dart';
@@ -10,12 +11,25 @@ class HistoryController extends GetxController {
   var categories = <Category>[].obs;
   var selectedMonth = DateTime.now().month.obs;
   var selectedYear = DateTime.now().year.obs;
+  var searchQuery = ''.obs;
+
+  late TextEditingController searchController;
 
   @override
   void onInit() {
     super.onInit();
+    searchController = TextEditingController();
     fetchTransactions();
     fetchCategories();
+
+    debounce(searchQuery, (_) => fetchTransactions(),
+        time: const Duration(milliseconds: 300));
+  }
+
+  @override
+  void onClose() {
+    searchController.dispose();
+    super.onClose();
   }
 
   Future<void> fetchCategories() async {
@@ -38,7 +52,32 @@ class HistoryController extends GetxController {
       await txn.category.load();
     }
 
-    transactions.assignAll(data);
+    if (searchQuery.value.isEmpty) {
+      transactions.assignAll(data);
+    } else {
+      final term = searchQuery.value.toLowerCase();
+      final filteredData = data.where((txn) {
+        final catName = txn.category.value?.name.toLowerCase() ?? '';
+        final note = txn.note?.toLowerCase() ?? '';
+        final amountStr = txn.amount.toInt().toString();
+
+        return catName.contains(term) ||
+            note.contains(term) ||
+            amountStr.contains(term);
+      }).toList();
+
+      transactions.assignAll(filteredData);
+    }
+  }
+
+  void updateSearch(String query) {
+    searchQuery.value = query;
+  }
+
+  void clearSearch() {
+    searchController.clear();
+    searchQuery.value = '';
+    FocusManager.instance.primaryFocus?.unfocus();
   }
 
   Future<void> deleteTransaction(int id) async {

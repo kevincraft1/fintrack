@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import 'package:intl/intl.dart';
 import 'history_controller.dart';
 import 'edit_transaction_screen.dart';
@@ -16,8 +17,12 @@ class HistoryScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: AppColors.background,
       appBar: AppBar(
-        title: Text('Riwayat Transaksi', style: TextStyle(fontSize: 20.sp)),
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        title: Text('Riwayat Transaksi',
+            style: TextStyle(fontSize: 20.sp, color: AppColors.textPrimary)),
         actions: [
           IconButton(
             icon: const Icon(Icons.picture_as_pdf, color: AppColors.primary),
@@ -31,7 +36,7 @@ class HistoryScreen extends StatelessWidget {
               } else {
                 Get.snackbar(
                   'Data Kosong',
-                  'Tidak ada transaksi pada periode ini untuk diekspor.',
+                  'Tidak ada transaksi untuk diekspor.',
                   snackPosition: SnackPosition.BOTTOM,
                   backgroundColor: AppColors.error,
                   colorText: AppColors.textPrimary,
@@ -43,16 +48,34 @@ class HistoryScreen extends StatelessWidget {
       ),
       body: Column(
         children: [
-          _buildFilterRow(),
+          _buildFilterRow()
+              .animate()
+              .fadeIn(duration: 300.ms)
+              .slideY(begin: -0.2, end: 0),
+          _buildSearchBar()
+              .animate()
+              .fadeIn(delay: 100.ms)
+              .slideY(begin: -0.2, end: 0),
           Expanded(
             child: Obx(() {
               if (c.transactions.isEmpty) {
                 return Center(
-                  child: Text(
-                    'Belum ada transaksi.',
-                    style: TextStyle(
-                        color: AppColors.textSecondary, fontSize: 16.sp),
-                  ),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(Icons.search_off,
+                          size: 64.sp,
+                          color: AppColors.textSecondary.withOpacity(0.5)),
+                      SizedBox(height: 16.h),
+                      Text(
+                        c.searchQuery.value.isEmpty
+                            ? 'Belum ada transaksi.'
+                            : 'Data tidak ditemukan.',
+                        style: TextStyle(
+                            color: AppColors.textSecondary, fontSize: 16.sp),
+                      ),
+                    ],
+                  ).animate().fadeIn(),
                 );
               }
 
@@ -147,7 +170,10 @@ class HistoryScreen extends StatelessWidget {
                         ],
                       ),
                     ),
-                  );
+                  )
+                      .animate(key: ValueKey(txn.id))
+                      .fadeIn(delay: (30 * (index < 10 ? index : 0)).ms)
+                      .slideX(begin: 0.1, end: 0);
                 },
               );
             }),
@@ -166,8 +192,13 @@ class HistoryScreen extends StatelessWidget {
           Obx(() => DropdownButton<int>(
                 value: c.selectedMonth.value,
                 dropdownColor: AppColors.card,
-                style: const TextStyle(color: AppColors.textPrimary),
+                style: TextStyle(
+                    color: AppColors.textPrimary,
+                    fontSize: 16.sp,
+                    fontWeight: FontWeight.w600),
                 underline: const SizedBox(),
+                icon: Icon(Icons.keyboard_arrow_down,
+                    color: AppColors.primary, size: 20.sp),
                 items: List.generate(
                     12,
                     (i) => DropdownMenuItem(
@@ -182,8 +213,13 @@ class HistoryScreen extends StatelessWidget {
           Obx(() => DropdownButton<int>(
                 value: c.selectedYear.value,
                 dropdownColor: AppColors.card,
-                style: const TextStyle(color: AppColors.textPrimary),
+                style: TextStyle(
+                    color: AppColors.textPrimary,
+                    fontSize: 16.sp,
+                    fontWeight: FontWeight.w600),
                 underline: const SizedBox(),
+                icon: Icon(Icons.keyboard_arrow_down,
+                    color: AppColors.primary, size: 20.sp),
                 items: [2025, 2026, 2027]
                     .map((y) => DropdownMenuItem(
                           value: y,
@@ -195,6 +231,37 @@ class HistoryScreen extends StatelessWidget {
                 },
               )),
         ],
+      ),
+    );
+  }
+
+  Widget _buildSearchBar() {
+    return Container(
+      margin: EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.h),
+      child: TextField(
+        controller: c.searchController,
+        onChanged: c.updateSearch,
+        style: TextStyle(color: AppColors.textPrimary, fontSize: 14.sp),
+        decoration: InputDecoration(
+          hintText: 'Cari kategori, catatan, atau nominal...',
+          hintStyle: TextStyle(color: AppColors.textSecondary, fontSize: 14.sp),
+          prefixIcon:
+              Icon(Icons.search, color: AppColors.textSecondary, size: 20.sp),
+          suffixIcon: Obx(() => c.searchQuery.value.isNotEmpty
+              ? IconButton(
+                  icon: Icon(Icons.cancel,
+                      color: AppColors.textSecondary, size: 18.sp),
+                  onPressed: c.clearSearch,
+                )
+              : const SizedBox()),
+          filled: true,
+          fillColor: AppColors.card,
+          contentPadding: EdgeInsets.symmetric(vertical: 0.h),
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(16.r),
+            borderSide: BorderSide.none,
+          ),
+        ),
       ),
     );
   }

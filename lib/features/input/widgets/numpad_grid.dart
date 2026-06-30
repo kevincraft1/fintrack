@@ -13,65 +13,84 @@ class NumpadGrid extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final keys = ['1', '2', '3', '4', '5', '6', '7', '8', '9', 'C', '0', '⌫'];
+    final keyRows = [
+      ['1', '2', '3'],
+      ['4', '5', '6'],
+      ['7', '8', '9'],
+      ['C', '0', '⌫'],
+    ];
+
     return Container(
-      padding: EdgeInsets.all(24.w),
-      child: GridView.builder(
-        shrinkWrap: true,
-        physics: const NeverScrollableScrollPhysics(),
-        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-          crossAxisCount: 3,
-          childAspectRatio: 1.5,
-          crossAxisSpacing: 16.w,
-          mainAxisSpacing: 16.h,
-        ),
-        itemCount: keys.length,
-        itemBuilder: (context, index) {
-          final key = keys[index];
-          final isAction = key == 'C' || key == '⌫';
-          return Material(
-            color: Colors.transparent,
-            child: InkWell(
-              onTap: () {
-                HapticFeedback.lightImpact();
-                if (key == 'C') {
-                  c.amountStr.value = '0';
-                } else if (key == '⌫') {
-                  c.removeDigit();
-                } else {
-                  c.addDigit(key);
-                }
-              },
-              borderRadius: BorderRadius.circular(16.r),
-              child: Ink(
-                decoration: BoxDecoration(
-                  color: isAction ? const Color(0xFF334155) : AppColors.card,
-                  borderRadius: BorderRadius.circular(16.r),
-                ),
-                child: Center(
-                  child: Obx(() {
-                    final currentType = c.selectedType.value;
-                    return Text(
-                      key,
-                      style: TextStyle(
-                        fontSize: 28.sp,
-                        fontWeight: FontWeight.w600,
-                        color: isAction
-                            ? (currentType == 'income'
-                                ? AppColors.primary
-                                : AppColors.error)
-                            : AppColors.textPrimary,
+      padding: EdgeInsets.symmetric(horizontal: 24.w, vertical: 16.h),
+      child: Column(
+        children: keyRows.asMap().entries.map((entry) {
+          final rowIndex = entry.key;
+          final rowKeys = entry.value;
+
+          return Expanded(
+            child: Padding(
+              padding: EdgeInsets.only(bottom: rowIndex == 3 ? 0 : 12.h),
+              child: Row(
+                children: rowKeys.asMap().entries.map((keyEntry) {
+                  final colIndex = keyEntry.key;
+                  final keyStr = keyEntry.value;
+                  final isAction = keyStr == 'C' || keyStr == '⌫';
+                  final index = (rowIndex * 3) + colIndex;
+
+                  return Expanded(
+                    child: Padding(
+                      padding: EdgeInsets.only(right: colIndex == 2 ? 0 : 16.w),
+                      child: Material(
+                        color: Colors.transparent,
+                        child: InkWell(
+                          onTap: () {
+                            HapticFeedback.lightImpact();
+                            if (keyStr == 'C') {
+                              c.amountStr.value = '0';
+                            } else if (keyStr == '⌫') {
+                              c.removeDigit();
+                            } else {
+                              c.addDigit(keyStr);
+                            }
+                          },
+                          borderRadius: BorderRadius.circular(16.r),
+                          child: Ink(
+                            decoration: BoxDecoration(
+                              color: isAction
+                                  ? const Color(0xFF334155)
+                                  : AppColors.card,
+                              borderRadius: BorderRadius.circular(16.r),
+                            ),
+                            child: Center(
+                              child: Obx(() {
+                                final currentType = c.selectedType.value;
+                                return Text(
+                                  keyStr,
+                                  style: TextStyle(
+                                    fontSize: 28.sp,
+                                    fontWeight: FontWeight.w600,
+                                    color: isAction
+                                        ? (currentType == 'income'
+                                            ? AppColors.primary
+                                            : AppColors.error)
+                                        : AppColors.textPrimary,
+                                  ),
+                                );
+                              }),
+                            ),
+                          ),
+                        ),
                       ),
-                    );
-                  }),
-                ),
+                    ).animate().scale(
+                        delay: (20 * index).ms,
+                        duration: 300.ms,
+                        curve: Curves.easeOutBack),
+                  );
+                }).toList(),
               ),
             ),
-          ).animate().scale(
-              delay: (20 * index).ms,
-              duration: 300.ms,
-              curve: Curves.easeOutBack);
-        },
+          );
+        }).toList(),
       ),
     );
   }
