@@ -2,13 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'data/database_service.dart';
-import 'features/home/home_screen.dart';
+import 'features/security/lock_screen.dart';
 import 'core/theme/app_colors.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await DatabaseService.init();
-
   runApp(const MyApp());
 }
 
@@ -30,7 +29,7 @@ class MyApp extends StatelessWidget {
             fontFamily: 'Poppins',
             useMaterial3: true,
           ),
-          home: HomeScreen(),
+          home: LockScreen(),
         );
       },
     );
