@@ -7,6 +7,7 @@ import 'widgets/balance_summary_card.dart';
 import 'widgets/quick_actions.dart';
 import 'widgets/wallet_list_section.dart';
 import 'widgets/recent_transactions.dart';
+import '../profile/profile_screen.dart';
 import '../../core/theme/app_colors.dart';
 
 class HomeScreen extends StatelessWidget {
@@ -42,6 +43,15 @@ class HomeScreen extends StatelessWidget {
                       fontWeight: FontWeight.bold),
                 ),
               ),
+              actions: [
+                IconButton(
+                  icon: Icon(Icons.account_circle,
+                      color: AppColors.primary, size: 28.sp),
+                  onPressed: () => Get.to(() => ProfileScreen(),
+                      transition: Transition.rightToLeftWithFade),
+                ),
+                SizedBox(width: 12.w),
+              ],
             ),
             SliverToBoxAdapter(
               child: Column(

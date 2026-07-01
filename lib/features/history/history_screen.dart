@@ -22,8 +22,17 @@ class HistoryScreen extends StatelessWidget {
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back_ios_new,
+              color: AppColors.textPrimary),
+          onPressed: () => Get.back(),
+        ),
         title: Text('Riwayat Transaksi',
-            style: TextStyle(fontSize: 20.sp, color: AppColors.textPrimary)),
+            style: TextStyle(
+                fontSize: 18.sp,
+                color: AppColors.textPrimary,
+                fontWeight: FontWeight.bold)),
+        centerTitle: true,
         actions: [
           PopupMenuButton<String>(
             icon: const Icon(Icons.download_rounded, color: AppColors.primary),
@@ -37,7 +46,7 @@ class HistoryScreen extends StatelessWidget {
                   'Tidak ada transaksi untuk diekspor.',
                   snackPosition: SnackPosition.BOTTOM,
                   backgroundColor: AppColors.error,
-                  colorText: AppColors.textPrimary,
+                  colorText: Colors.white,
                 );
                 return;
               }
@@ -120,12 +129,14 @@ class HistoryScreen extends StatelessWidget {
               }
 
               return ListView.separated(
-                padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 16.h),
+                physics: const BouncingScrollPhysics(),
+                padding: EdgeInsets.symmetric(horizontal: 24.w, vertical: 16.h),
                 itemCount: c.transactions.length,
                 separatorBuilder: (context, index) => SizedBox(height: 12.h),
                 itemBuilder: (context, index) {
                   final txn = c.transactions[index];
                   final category = txn.category.value;
+                  final wallet = txn.wallet.value;
                   final categoryName = category?.name ?? 'Lainnya';
                   final iconData = category != null
                       ? IconMapper.getIcon(category.iconName)
@@ -146,7 +157,7 @@ class HistoryScreen extends StatelessWidget {
                       () => EditTransactionScreen(transaction: txn),
                       transition: Transition.rightToLeftWithFade,
                     ),
-                    onLongPress: () => c.deleteTransaction(txn.id),
+                    onLongPress: () => _confirmDelete(context, txn.id),
                     borderRadius: BorderRadius.circular(16.r),
                     child: Ink(
                       padding: EdgeInsets.all(16.w),
@@ -180,17 +191,17 @@ class HistoryScreen extends StatelessWidget {
                                     style: TextStyle(
                                         color: AppColors.textSecondary
                                             .withOpacity(0.8),
-                                        fontSize: 13.sp,
+                                        fontSize: 12.sp,
                                         fontStyle: FontStyle.italic),
                                     maxLines: 1,
                                     overflow: TextOverflow.ellipsis,
                                   ),
                                 ],
                                 SizedBox(height: 4.h),
-                                Text(formatDate,
+                                Text('$formatDate • ${wallet?.name ?? '-'}',
                                     style: TextStyle(
                                         color: AppColors.textSecondary,
-                                        fontSize: 12.sp)),
+                                        fontSize: 11.sp)),
                               ],
                             ),
                           ),
@@ -198,7 +209,7 @@ class HistoryScreen extends StatelessWidget {
                             '$operator ${formatCurrency.format(txn.amount)}',
                             style: TextStyle(
                                 color: amountColor,
-                                fontSize: 16.sp,
+                                fontSize: 14.sp,
                                 fontWeight: FontWeight.w700),
                           ),
                         ],
@@ -218,6 +229,21 @@ class HistoryScreen extends StatelessWidget {
   }
 
   Widget _buildFilterRow() {
+    final monthNames = [
+      'Januari',
+      'Februari',
+      'Maret',
+      'April',
+      'Mei',
+      'Juni',
+      'Juli',
+      'Agustus',
+      'September',
+      'Oktober',
+      'November',
+      'Desember'
+    ];
+
     return Padding(
       padding: EdgeInsets.symmetric(vertical: 8.h),
       child: Row(
@@ -236,7 +262,7 @@ class HistoryScreen extends StatelessWidget {
                 items: List.generate(
                     12,
                     (i) => DropdownMenuItem(
-                        value: i + 1, child: Text('Bulan ${i + 1}'))),
+                        value: i + 1, child: Text(monthNames[i]))),
                 onChanged: (val) {
                   if (val != null) c.changePeriod(val, c.selectedYear.value);
                 },
@@ -267,13 +293,13 @@ class HistoryScreen extends StatelessWidget {
 
   Widget _buildSearchBar() {
     return Container(
-      margin: EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.h),
+      margin: EdgeInsets.symmetric(horizontal: 24.w, vertical: 8.h),
       child: TextField(
         controller: c.searchController,
         onChanged: c.updateSearch,
         style: TextStyle(color: AppColors.textPrimary, fontSize: 14.sp),
         decoration: InputDecoration(
-          hintText: 'Cari kategori, catatan, atau nominal...',
+          hintText: 'Cari transaksi...',
           hintStyle: TextStyle(color: AppColors.textSecondary, fontSize: 14.sp),
           prefixIcon:
               Icon(Icons.search, color: AppColors.textSecondary, size: 20.sp),
@@ -291,6 +317,29 @@ class HistoryScreen extends StatelessWidget {
               borderSide: BorderSide.none),
         ),
       ),
+    );
+  }
+
+  void _confirmDelete(BuildContext context, int id) {
+    Get.defaultDialog(
+      backgroundColor: AppColors.card,
+      title: 'Hapus Transaksi',
+      titleStyle: TextStyle(
+          color: AppColors.textPrimary,
+          fontSize: 18.sp,
+          fontWeight: FontWeight.bold),
+      middleText: 'Yakin ingin menghapus data ini?',
+      middleTextStyle:
+          TextStyle(color: AppColors.textSecondary, fontSize: 14.sp),
+      textCancel: 'Batal',
+      cancelTextColor: AppColors.primary,
+      textConfirm: 'Hapus',
+      confirmTextColor: Colors.white,
+      buttonColor: AppColors.error,
+      onConfirm: () {
+        Get.back();
+        c.deleteTransaction(id);
+      },
     );
   }
 }

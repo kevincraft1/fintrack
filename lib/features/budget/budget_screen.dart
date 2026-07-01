@@ -164,6 +164,21 @@ class BudgetScreen extends StatelessWidget {
   }
 
   Widget _buildFilterRow() {
+    final monthNames = [
+      'Januari',
+      'Februari',
+      'Maret',
+      'April',
+      'Mei',
+      'Juni',
+      'Juli',
+      'Agustus',
+      'September',
+      'Oktober',
+      'November',
+      'Desember'
+    ];
+
     return Padding(
       padding: EdgeInsets.symmetric(vertical: 8.h),
       child: Row(
@@ -182,7 +197,7 @@ class BudgetScreen extends StatelessWidget {
                 items: List.generate(
                     12,
                     (i) => DropdownMenuItem(
-                        value: i + 1, child: Text('Bulan ${i + 1}'))),
+                        value: i + 1, child: Text(monthNames[i]))),
                 onChanged: (val) {
                   if (val != null) c.changePeriod(val, c.selectedYear.value);
                 },
