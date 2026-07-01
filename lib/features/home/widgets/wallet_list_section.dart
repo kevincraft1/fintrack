@@ -31,7 +31,7 @@ class WalletListSection extends StatelessWidget {
           ),
           SizedBox(height: 12.h),
           SizedBox(
-            height: 110.h,
+            height: 130.h,
             child: ListView.builder(
               scrollDirection: Axis.horizontal,
               physics: const BouncingScrollPhysics(),
@@ -52,12 +52,13 @@ class WalletListSection extends StatelessWidget {
                         color: AppColors.textSecondary.withOpacity(0.1)),
                   ),
                   child: Column(
+                    mainAxisSize: MainAxisSize.min,
                     crossAxisAlignment: CrossAxisAlignment.start,
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       Icon(IconMapper.getIcon(wallet.iconName),
                           color: AppColors.primary, size: 24.sp),
-                      const Spacer(),
+                      SizedBox(height: 12.h),
                       Text(wallet.name,
                           style: TextStyle(
                               color: AppColors.textSecondary, fontSize: 12.sp),

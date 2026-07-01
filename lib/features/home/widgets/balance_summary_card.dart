@@ -14,6 +14,21 @@ class BalanceSummaryCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final formatCurrency =
         NumberFormat.currency(locale: 'id', symbol: 'Rp ', decimalDigits: 0);
+    final months = [
+      'Januari',
+      'Februari',
+      'Maret',
+      'April',
+      'Mei',
+      'Juni',
+      'Juli',
+      'Agustus',
+      'September',
+      'Oktober',
+      'November',
+      'Desember'
+    ];
+    final currentMonth = months[DateTime.now().month - 1];
 
     return Container(
       margin: EdgeInsets.symmetric(horizontal: 24.w),
@@ -33,9 +48,10 @@ class BalanceSummaryCard extends StatelessWidget {
         ],
       ),
       child: Column(
+        mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('Total Saldo (Semua Dompet)',
+          Text('Total Saldo (Bulan $currentMonth)',
               style: TextStyle(
                   color: Colors.white.withOpacity(0.8), fontSize: 14.sp)),
           SizedBox(height: 8.h),
@@ -46,12 +62,16 @@ class BalanceSummaryCard extends StatelessWidget {
                     fontSize: 32.sp,
                     fontWeight: FontWeight.bold,
                     letterSpacing: -1),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
               )),
           SizedBox(height: 24.h),
           Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Expanded(
                 child: Column(
+                  mainAxisSize: MainAxisSize.min,
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Row(
@@ -59,9 +79,15 @@ class BalanceSummaryCard extends StatelessWidget {
                         Icon(Icons.arrow_downward,
                             color: Colors.white70, size: 16.sp),
                         SizedBox(width: 4.w),
-                        Text('Pemasukan Bulan Ini',
+                        Expanded(
+                          child: Text(
+                            'Pemasukan',
                             style: TextStyle(
-                                color: Colors.white70, fontSize: 12.sp)),
+                                color: Colors.white70, fontSize: 12.sp),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
                       ],
                     ),
                     SizedBox(height: 4.h),
@@ -71,15 +97,21 @@ class BalanceSummaryCard extends StatelessWidget {
                               color: Colors.white,
                               fontSize: 14.sp,
                               fontWeight: FontWeight.w600),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
                         )),
                   ],
                 ),
               ),
               Container(
-                  width: 1, height: 40.h, color: Colors.white.withOpacity(0.2)),
-              SizedBox(width: 16.w),
+                width: 1,
+                height: 40.h,
+                margin: EdgeInsets.symmetric(horizontal: 12.w),
+                color: Colors.white.withOpacity(0.2),
+              ),
               Expanded(
                 child: Column(
+                  mainAxisSize: MainAxisSize.min,
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Row(
@@ -87,9 +119,15 @@ class BalanceSummaryCard extends StatelessWidget {
                         Icon(Icons.arrow_upward,
                             color: Colors.white70, size: 16.sp),
                         SizedBox(width: 4.w),
-                        Text('Pengeluaran Bulan Ini',
+                        Expanded(
+                          child: Text(
+                            'Pengeluaran',
                             style: TextStyle(
-                                color: Colors.white70, fontSize: 12.sp)),
+                                color: Colors.white70, fontSize: 12.sp),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
                       ],
                     ),
                     SizedBox(height: 4.h),
@@ -99,6 +137,8 @@ class BalanceSummaryCard extends StatelessWidget {
                               color: Colors.white,
                               fontSize: 14.sp,
                               fontWeight: FontWeight.w600),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
                         )),
                   ],
                 ),

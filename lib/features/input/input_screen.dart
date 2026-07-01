@@ -35,17 +35,29 @@ class InputScreen extends StatelessWidget {
       ),
       body: Column(
         children: [
-          TypeToggle(),
-          SizedBox(height: 16.h),
-          AmountDisplay(),
-          SizedBox(height: 24.h),
-          WalletRow(),
-          SizedBox(height: 24.h),
-          CategoryRow(),
-          SizedBox(height: 16.h),
-          NoteInput(),
-          const Spacer(),
-          NumpadGrid(),
+          Expanded(
+            child: SingleChildScrollView(
+              physics: const BouncingScrollPhysics(),
+              child: Column(
+                children: [
+                  TypeToggle(),
+                  SizedBox(height: 16.h),
+                  AmountDisplay(),
+                  SizedBox(height: 24.h),
+                  WalletRow(),
+                  SizedBox(height: 24.h),
+                  CategoryRow(),
+                  SizedBox(height: 16.h),
+                  NoteInput(),
+                  SizedBox(height: 16.h),
+                ],
+              ),
+            ),
+          ),
+          SizedBox(
+            height: 320.h,
+            child: NumpadGrid(),
+          ),
         ],
       ),
     );

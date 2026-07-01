@@ -22,11 +22,12 @@ class HomeController extends GetxController {
     final now = DateTime.now();
     final startOfMonth = DateTime(now.year, now.month, 1);
 
-    final allTxn = await DatabaseService.isar.transactions
-        .where()
-        .sortByDateDesc()
-        .findAll();
-    final allWallets = await DatabaseService.isar.wallets.where().findAll();
+    final allTxn =
+        await DatabaseService.isar.transactions.where().anyId().findAll();
+    allTxn.sort((a, b) => b.date.compareTo(a.date));
+
+    final allWallets =
+        await DatabaseService.isar.wallets.where().anyId().findAll();
 
     double balance = 0.0;
     double income = 0.0;

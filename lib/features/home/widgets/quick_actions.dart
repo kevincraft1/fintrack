@@ -32,15 +32,16 @@ class QuickActions extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       child: Column(
+        mainAxisSize: MainAxisSize.min,
         children: [
           Container(
-            padding: EdgeInsets.all(16.w),
+            padding: EdgeInsets.all(14.w),
             decoration: BoxDecoration(
               color: AppColors.card,
               borderRadius: BorderRadius.circular(16.r),
               border: Border.all(color: AppColors.primary.withOpacity(0.1)),
             ),
-            child: Icon(icon, color: AppColors.primary, size: 28.sp),
+            child: Icon(icon, color: AppColors.primary, size: 24.sp),
           ),
           SizedBox(height: 8.h),
           Text(label,

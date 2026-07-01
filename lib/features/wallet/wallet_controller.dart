@@ -16,7 +16,7 @@ class WalletController extends GetxController {
   }
 
   Future<void> loadWallets() async {
-    final data = await DatabaseService.isar.wallets.where().findAll();
+    final data = await DatabaseService.isar.wallets.where().anyId().findAll();
     wallets.assignAll(data);
   }
 

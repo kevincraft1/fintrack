@@ -70,6 +70,8 @@ class RecentTransactions extends StatelessWidget {
                     SizedBox(width: 16.w),
                     Expanded(
                       child: Column(
+                        mainAxisSize:
+                            MainAxisSize.min, // PERBAIKAN: Safety constraint
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(cat?.name ?? 'Lainnya',
