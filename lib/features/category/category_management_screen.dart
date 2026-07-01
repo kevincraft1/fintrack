@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import 'category_controller.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/utils/icon_mapper.dart';
@@ -13,61 +14,177 @@ class CategoryManagementScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: AppColors.background,
       appBar: AppBar(
-        title: Text('Kelola Kategori', style: TextStyle(fontSize: 20.sp)),
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back_ios_new,
+              color: AppColors.textPrimary),
+          onPressed: () => Get.back(),
+        ),
+        title: Text('Kelola Kategori',
+            style: TextStyle(
+                color: AppColors.textPrimary,
+                fontSize: 18.sp,
+                fontWeight: FontWeight.bold)),
+        centerTitle: true,
       ),
       floatingActionButton: FloatingActionButton(
         backgroundColor: AppColors.primary,
         shape:
             RoundedRectangleBorder(borderRadius: BorderRadius.circular(16.r)),
+        elevation: 4,
         onPressed: () => _showAddCategorySheet(context),
         child: const Icon(Icons.add, color: Colors.white),
-      ),
-      body: Obx(() {
-        if (c.categories.isEmpty) return const SizedBox();
-        return ListView.separated(
-          padding: EdgeInsets.all(16.w),
-          itemCount: c.categories.length,
-          separatorBuilder: (_, __) => SizedBox(height: 12.h),
-          itemBuilder: (context, index) {
-            final cat = c.categories[index];
-            final isIncome = cat.type == 'income';
-
-            return Ink(
-              decoration: BoxDecoration(
-                color: AppColors.card,
-                borderRadius: BorderRadius.circular(16.r),
-              ),
-              child: ListTile(
-                contentPadding:
-                    EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.h),
-                leading: Container(
-                  padding: EdgeInsets.all(12.w),
-                  decoration: const BoxDecoration(
-                    color: AppColors.background,
-                    shape: BoxShape.circle,
+      ).animate().scaleXY(begin: 0.8, end: 1.0, duration: 300.ms),
+      body: Column(
+        children: [
+          _buildTypeToggle().animate().fadeIn().slideY(begin: -0.1),
+          Expanded(
+            child: Obx(() {
+              if (c.categories.isEmpty) {
+                return Center(
+                  child: Text(
+                    'Belum ada kategori.',
+                    style: TextStyle(
+                        color: AppColors.textSecondary, fontSize: 14.sp),
                   ),
-                  child: Icon(IconMapper.getIcon(cat.iconName),
-                      color: isIncome ? AppColors.primary : AppColors.error),
-                ),
-                title: Text(cat.name,
-                    style: TextStyle(
-                        color: AppColors.textPrimary,
-                        fontSize: 16.sp,
-                        fontWeight: FontWeight.bold)),
-                subtitle: Text(isIncome ? 'Pemasukan' : 'Pengeluaran',
-                    style: TextStyle(
-                        color: AppColors.textSecondary, fontSize: 12.sp)),
-                trailing: IconButton(
-                  icon:
-                      const Icon(Icons.delete_outline, color: AppColors.error),
-                  onPressed: () => c.deleteCategory(cat.id),
-                ),
-              ),
-            );
-          },
-        );
-      }),
+                ).animate().fadeIn();
+              }
+              return ListView.separated(
+                physics: const BouncingScrollPhysics(),
+                padding: EdgeInsets.all(24.w),
+                itemCount: c.categories.length,
+                separatorBuilder: (_, __) => SizedBox(height: 12.h),
+                itemBuilder: (context, index) {
+                  final cat = c.categories[index];
+                  final isIncome = cat.type == 'income';
+
+                  return InkWell(
+                    borderRadius: BorderRadius.circular(16.r),
+                    onTap: () {},
+                    child: Ink(
+                      decoration: BoxDecoration(
+                        color: AppColors.card,
+                        borderRadius: BorderRadius.circular(16.r),
+                      ),
+                      child: ListTile(
+                        contentPadding: EdgeInsets.symmetric(
+                            horizontal: 16.w, vertical: 8.h),
+                        leading: Container(
+                          padding: EdgeInsets.all(12.w),
+                          decoration: const BoxDecoration(
+                            color: AppColors.background,
+                            shape: BoxShape.circle,
+                          ),
+                          child: Icon(
+                            IconMapper.getIcon(cat.iconName),
+                            color:
+                                isIncome ? AppColors.primary : AppColors.error,
+                          ),
+                        ),
+                        title: Text(
+                          cat.name,
+                          style: TextStyle(
+                              color: AppColors.textPrimary,
+                              fontSize: 16.sp,
+                              fontWeight: FontWeight.bold),
+                        ),
+                        subtitle: Text(
+                          isIncome ? 'Pemasukan' : 'Pengeluaran',
+                          style: TextStyle(
+                              color: AppColors.textSecondary, fontSize: 12.sp),
+                        ),
+                        trailing: IconButton(
+                          icon: const Icon(Icons.delete_outline,
+                              color: AppColors.error),
+                          onPressed: () => _confirmDelete(context, cat.id),
+                        ),
+                      ),
+                    ),
+                  ).animate().fadeIn(delay: (50 * index).ms).slideX(begin: 0.1);
+                },
+              );
+            }),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildTypeToggle() {
+    return Container(
+      margin: EdgeInsets.symmetric(horizontal: 24.w, vertical: 8.h),
+      padding: EdgeInsets.all(4.w),
+      decoration: BoxDecoration(
+        color: AppColors.card,
+        borderRadius: BorderRadius.circular(16.r),
+      ),
+      child: Obx(() => Row(
+            children: [
+              Expanded(
+                  child: _buildToggleBtn('Pengeluaran', 'expense',
+                      c.selectedType.value == 'expense')),
+              Expanded(
+                  child: _buildToggleBtn(
+                      'Pemasukan', 'income', c.selectedType.value == 'income')),
+            ],
+          )),
+    );
+  }
+
+  Widget _buildToggleBtn(String title, String type, bool isSelected) {
+    return GestureDetector(
+      onTap: () => c.setType(type),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 250),
+        padding: EdgeInsets.symmetric(vertical: 12.h),
+        decoration: BoxDecoration(
+          color: isSelected ? AppColors.background : Colors.transparent,
+          borderRadius: BorderRadius.circular(12.r),
+          boxShadow: isSelected
+              ? [
+                  BoxShadow(
+                      color: Colors.black.withOpacity(0.1),
+                      blurRadius: 4,
+                      offset: const Offset(0, 2))
+                ]
+              : [],
+        ),
+        alignment: Alignment.center,
+        child: Text(
+          title,
+          style: TextStyle(
+            color: isSelected ? AppColors.textPrimary : AppColors.textSecondary,
+            fontSize: 14.sp,
+            fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _confirmDelete(BuildContext context, int id) {
+    Get.defaultDialog(
+      backgroundColor: AppColors.card,
+      title: 'Hapus Kategori',
+      titleStyle: TextStyle(
+          color: AppColors.textPrimary,
+          fontSize: 18.sp,
+          fontWeight: FontWeight.bold),
+      middleText: 'Yakin ingin menghapus kategori ini?',
+      middleTextStyle:
+          TextStyle(color: AppColors.textSecondary, fontSize: 14.sp),
+      textCancel: 'Batal',
+      cancelTextColor: AppColors.primary,
+      textConfirm: 'Hapus',
+      confirmTextColor: Colors.white,
+      buttonColor: AppColors.error,
+      onConfirm: () {
+        Get.back();
+        c.deleteCategory(id);
+      },
     );
   }
 
@@ -81,7 +198,7 @@ class CategoryManagementScreen extends StatelessWidget {
         padding: EdgeInsets.only(
           left: 24.w,
           right: 24.w,
-          top: 24.w,
+          top: 24.h,
           bottom: 24.h + MediaQuery.of(context).viewInsets.bottom,
         ),
         decoration: BoxDecoration(
@@ -108,7 +225,7 @@ class CategoryManagementScreen extends StatelessWidget {
                   filled: true,
                   fillColor: AppColors.card,
                   border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12.r),
+                      borderRadius: BorderRadius.circular(16.r),
                       borderSide: BorderSide.none),
                 ),
               ),
@@ -146,18 +263,22 @@ class CategoryManagementScreen extends StatelessWidget {
               SizedBox(height: 16.h),
               Text('Pilih Ikon',
                   style: TextStyle(
-                      color: AppColors.textSecondary, fontSize: 14.sp)),
+                      color: AppColors.textSecondary,
+                      fontSize: 14.sp,
+                      fontWeight: FontWeight.w500)),
               SizedBox(height: 12.h),
               SizedBox(
                 height: 50.h,
                 child: ListView.builder(
                   scrollDirection: Axis.horizontal,
+                  physics: const BouncingScrollPhysics(),
                   itemCount: IconMapper.availableIcons.length,
                   itemBuilder: (context, index) {
                     final iconName = IconMapper.availableIcons[index];
                     return Obx(() => GestureDetector(
                           onTap: () => selectedIcon.value = iconName,
-                          child: Container(
+                          child: AnimatedContainer(
+                            duration: const Duration(milliseconds: 200),
                             margin: EdgeInsets.only(right: 12.w),
                             padding: EdgeInsets.all(12.w),
                             decoration: BoxDecoration(
@@ -182,17 +303,20 @@ class CategoryManagementScreen extends StatelessWidget {
               SizedBox(height: 32.h),
               SizedBox(
                 width: double.infinity,
-                height: 50.h,
+                height: 56.h,
                 child: ElevatedButton(
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppColors.primary,
                     shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12.r)),
+                        borderRadius: BorderRadius.circular(16.r)),
+                    elevation: 0,
                   ),
                   onPressed: () {
-                    if (nameController.text.isNotEmpty) {
-                      c.addCategory(nameController.text, selectedType.value,
-                          selectedIcon.value);
+                    if (nameController.text.trim().isNotEmpty) {
+                      // SOLUSI: Selaraskan tipe di controller sebelum memanggil addCategory (2 argumen)
+                      c.selectedType.value = selectedType.value;
+                      c.addCategory(
+                          nameController.text.trim(), selectedIcon.value);
                     }
                   },
                   child: Text('Simpan Kategori',

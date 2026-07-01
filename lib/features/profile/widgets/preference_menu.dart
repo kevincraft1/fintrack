@@ -1,12 +1,37 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../security/security_controller.dart';
 import '../../backup/backup_controller.dart';
 
 class PreferenceMenu extends StatelessWidget {
   const PreferenceMenu({super.key});
+
+  Future<void> _launchPrivacyPolicy() async {
+    // Ganti URL ini dengan URL Google Sites / Web Kebijakan Privasi asli Anda nanti
+    final Uri url = Uri.parse('https://policies.google.com/privacy');
+    if (!await launchUrl(url, mode: LaunchMode.externalApplication)) {
+      Get.snackbar('Error', 'Tidak dapat membuka browser.',
+          backgroundColor: AppColors.error, colorText: Colors.white);
+    }
+  }
+
+  void _showAboutApp(BuildContext context) {
+    showAboutDialog(
+      context: context,
+      applicationName: 'FinTrack Pro',
+      applicationVersion: 'v1.0.0 (Production Release)',
+      applicationIcon: ClipRRect(
+        borderRadius: BorderRadius.circular(12.r),
+        child: Image.asset('assets/images/fintrack-pro.png',
+            width: 48.w, height: 48.w),
+      ),
+      applicationLegalese:
+          '© 2026 FinTrack Pro.\nDikembangkan secara eksklusif untuk efisiensi finansial mutlak.',
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -56,9 +81,20 @@ class PreferenceMenu extends StatelessWidget {
                 ),
                 Divider(
                     color: AppColors.textSecondary.withOpacity(0.1), height: 1),
-                _buildMenuItem(Icons.info_outline, 'Tentang Aplikasi',
-                    'FinTrack Pro v1.0.0',
-                    onTap: () {}),
+                _buildMenuItem(
+                  Icons.shield_outlined,
+                  'Kebijakan Privasi',
+                  'Syarat & ketentuan data',
+                  onTap: _launchPrivacyPolicy,
+                ),
+                Divider(
+                    color: AppColors.textSecondary.withOpacity(0.1), height: 1),
+                _buildMenuItem(
+                  Icons.info_outline,
+                  'Tentang Aplikasi',
+                  'FinTrack Pro v1.0.0',
+                  onTap: () => _showAboutApp(context),
+                ),
               ],
             ),
           ),
