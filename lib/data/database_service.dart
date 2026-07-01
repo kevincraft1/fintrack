@@ -2,6 +2,8 @@ import 'package:isar/isar.dart';
 import 'package:path_provider/path_provider.dart';
 import 'models/transaction.dart';
 import 'models/category.dart';
+import 'models/wallet.dart';
+import 'models/budget.dart';
 
 class DatabaseService {
   static late Isar isar;
@@ -11,22 +13,21 @@ class DatabaseService {
 
     if (Isar.instanceNames.isEmpty) {
       isar = await Isar.open(
-        [TransactionSchema, CategorySchema],
+        [TransactionSchema, CategorySchema, WalletSchema, BudgetSchema],
         directory: dir.path,
       );
     } else {
       isar = Isar.getInstance()!;
     }
 
-    await _seedDefaultCategories();
+    await _seedDefaultData();
   }
 
-  static Future<void> _seedDefaultCategories() async {
+  static Future<void> _seedDefaultData() async {
     final categoryCount = await isar.categorys.count();
 
     if (categoryCount == 0) {
       final defaultCategories = [
-        // Kategori Pemasukan
         Category()
           ..name = 'Gaji'
           ..iconName = 'attach_money'
@@ -39,8 +40,6 @@ class DatabaseService {
           ..name = 'Investasi'
           ..iconName = 'trending_up'
           ..type = 'income',
-
-        // Kategori Pengeluaran
         Category()
           ..name = 'Makanan'
           ..iconName = 'restaurant'
@@ -66,10 +65,17 @@ class DatabaseService {
           ..iconName = 'more_horiz'
           ..type = 'expense',
       ];
+      await isar
+          .writeTxn(() async => await isar.categorys.putAll(defaultCategories));
+    }
 
-      await isar.writeTxn(() async {
-        await isar.categorys.putAll(defaultCategories);
-      });
+    final walletCount = await isar.wallets.count();
+    if (walletCount == 0) {
+      final defaultWallet = Wallet()
+        ..name = 'Uang Tunai'
+        ..iconName = 'account_balance_wallet'
+        ..initialBalance = 0.0;
+      await isar.writeTxn(() async => await isar.wallets.put(defaultWallet));
     }
   }
 }

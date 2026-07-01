@@ -1,55 +1,46 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import '../../../core/theme/app_colors.dart';
 import '../../input/input_screen.dart';
 import '../../history/history_screen.dart';
-import '../../category/category_management_screen.dart';
-import '../home_controller.dart';
+import '../../budget/budget_screen.dart';
+import '../../../core/theme/app_colors.dart';
 
 class QuickActions extends StatelessWidget {
   const QuickActions({super.key});
 
   @override
   Widget build(BuildContext context) {
-    final c = Get.find<HomeController>();
-
     return Padding(
       padding: EdgeInsets.symmetric(horizontal: 24.w),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          _buildActionItem(Icons.add_card, 'Catat', AppColors.primary,
-              () => Get.to(() => InputScreen())?.then((_) => c.loadHomeData())),
-          _buildActionItem(
-              Icons.history,
-              'Riwayat',
-              const Color(0xFFF59E0B),
-              () =>
-                  Get.to(() => HistoryScreen())?.then((_) => c.loadHomeData())),
-          _buildActionItem(Icons.category, 'Kategori', const Color(0xFF8B5CF6),
-              () => Get.to(() => CategoryManagementScreen())),
-          _buildActionItem(
-              Icons.more_horiz, 'Lainnya', AppColors.textSecondary, () {}),
+          _buildActionBtn(Icons.add_circle_outline, 'Catat',
+              () => Get.to(() => InputScreen())),
+          _buildActionBtn(
+              Icons.history, 'Riwayat', () => Get.to(() => HistoryScreen())),
+          _buildActionBtn(Icons.track_changes, 'Anggaran',
+              () => Get.to(() => BudgetScreen())),
+          _buildActionBtn(Icons.bar_chart, 'Statistik', () {}),
         ],
       ),
     );
   }
 
-  Widget _buildActionItem(
-      IconData icon, String label, Color color, VoidCallback onTap) {
+  Widget _buildActionBtn(IconData icon, String label, VoidCallback onTap) {
     return GestureDetector(
       onTap: onTap,
       child: Column(
         children: [
           Container(
-            height: 60.w,
-            width: 60.w,
+            padding: EdgeInsets.all(16.w),
             decoration: BoxDecoration(
               color: AppColors.card,
               borderRadius: BorderRadius.circular(16.r),
+              border: Border.all(color: AppColors.primary.withOpacity(0.1)),
             ),
-            child: Icon(icon, color: color, size: 28.sp),
+            child: Icon(icon, color: AppColors.primary, size: 28.sp),
           ),
           SizedBox(height: 8.h),
           Text(label,

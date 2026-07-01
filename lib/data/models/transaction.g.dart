@@ -45,6 +45,12 @@ const TransactionSchema = CollectionSchema(
       name: r'category',
       target: r'Category',
       single: true,
+    ),
+    r'wallet': LinkSchema(
+      id: 1024496812754223676,
+      name: r'wallet',
+      target: r'Wallet',
+      single: true,
     )
   },
   embeddedSchemas: {},
@@ -117,13 +123,14 @@ Id _transactionGetId(Transaction object) {
 }
 
 List<IsarLinkBase<dynamic>> _transactionGetLinks(Transaction object) {
-  return [object.category];
+  return [object.category, object.wallet];
 }
 
 void _transactionAttach(
     IsarCollection<dynamic> col, Id id, Transaction object) {
   object.id = id;
   object.category.attach(col, col.isar.collection<Category>(), r'category', id);
+  object.wallet.attach(col, col.isar.collection<Wallet>(), r'wallet', id);
 }
 
 extension TransactionQueryWhereSort
@@ -540,6 +547,19 @@ extension TransactionQueryLinks
       categoryIsNull() {
     return QueryBuilder.apply(this, (query) {
       return query.linkLength(r'category', 0, true, 0, true);
+    });
+  }
+
+  QueryBuilder<Transaction, Transaction, QAfterFilterCondition> wallet(
+      FilterQuery<Wallet> q) {
+    return QueryBuilder.apply(this, (query) {
+      return query.link(q, r'wallet');
+    });
+  }
+
+  QueryBuilder<Transaction, Transaction, QAfterFilterCondition> walletIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.linkLength(r'wallet', 0, true, 0, true);
     });
   }
 }

@@ -1,14 +1,16 @@
 import 'package:get/get.dart';
-import 'package:intl/intl.dart';
 import 'package:isar/isar.dart';
 import '../../data/database_service.dart';
 import '../../data/models/transaction.dart';
+import '../../data/models/wallet.dart';
 
 class HomeController extends GetxController {
   var totalBalance = 0.0.obs;
-  var monthlyIncome = 0.0.obs;
-  var monthlyExpense = 0.0.obs;
+  var totalIncome = 0.0.obs;
+  var totalExpense = 0.0.obs;
   var recentTransactions = <Transaction>[].obs;
+  var wallets = <Wallet>[].obs;
+  var walletBalances = <int, double>{}.obs;
 
   @override
   void onInit() {
@@ -19,56 +21,58 @@ class HomeController extends GetxController {
   Future<void> loadHomeData() async {
     final now = DateTime.now();
     final startOfMonth = DateTime(now.year, now.month, 1);
-    final endOfMonth = DateTime(now.year, now.month + 1, 1)
-        .subtract(const Duration(microseconds: 1));
 
-    final allTransactions =
-        await DatabaseService.isar.transactions.where().anyId().findAll();
+    final allTxn = await DatabaseService.isar.transactions
+        .where()
+        .sortByDateDesc()
+        .findAll();
+    final allWallets = await DatabaseService.isar.wallets.where().findAll();
 
-    double balance = 0;
-    double mIncome = 0;
-    double mExpense = 0;
+    double balance = 0.0;
+    double income = 0.0;
+    double expense = 0.0;
+    Map<int, double> wBalances = {};
 
-    for (var txn in allTransactions) {
+    for (var w in allWallets) {
+      wBalances[w.id] = w.initialBalance;
+      balance += w.initialBalance;
+    }
+
+    for (var txn in allTxn) {
       await txn.category.load();
+      await txn.wallet.load();
+
       final isIncome = txn.category.value?.type == 'income';
+      final amount = txn.amount;
+      final walletId = txn.wallet.value?.id;
 
       if (isIncome) {
-        balance += txn.amount;
+        balance += amount;
+        if (walletId != null && wBalances.containsKey(walletId)) {
+          wBalances[walletId] = wBalances[walletId]! + amount;
+        }
       } else {
-        balance -= txn.amount;
+        balance -= amount;
+        if (walletId != null && wBalances.containsKey(walletId)) {
+          wBalances[walletId] = wBalances[walletId]! - amount;
+        }
       }
 
-      if (txn.date.isAfter(startOfMonth) && txn.date.isBefore(endOfMonth)) {
+      if (txn.date.isAfter(startOfMonth) ||
+          txn.date.isAtSameMomentAs(startOfMonth)) {
         if (isIncome) {
-          mIncome += txn.amount;
+          income += amount;
         } else {
-          mExpense += txn.amount;
+          expense += amount;
         }
       }
     }
 
+    wallets.assignAll(allWallets);
+    walletBalances.assignAll(wBalances);
     totalBalance.value = balance;
-    monthlyIncome.value = mIncome;
-    monthlyExpense.value = mExpense;
-
-    final recent = await DatabaseService.isar.transactions
-        .where()
-        .anyId()
-        .sortByDateDesc()
-        .limit(5)
-        .findAll();
-
-    for (var txn in recent) {
-      await txn.category.load();
-    }
-
-    recentTransactions.assignAll(recent);
-  }
-
-  String formatCurrency(double amount) {
-    final formatter =
-        NumberFormat.currency(locale: 'id', symbol: 'Rp ', decimalDigits: 0);
-    return formatter.format(amount);
+    totalIncome.value = income;
+    totalExpense.value = expense;
+    recentTransactions.assignAll(allTxn.take(5).toList());
   }
 }

@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
+import 'package:isar/isar.dart';
 import '../../data/database_service.dart';
 import '../../data/models/transaction.dart';
 import '../../data/models/category.dart';
+import '../../data/models/wallet.dart';
+import '../home/home_controller.dart';
 import '../../core/theme/app_colors.dart';
-import 'package:isar/isar.dart';
 
 class InputController extends GetxController {
   var amountStr = '0'.obs;
@@ -15,12 +17,16 @@ class InputController extends GetxController {
   var isNoteExpanded = false.obs;
   late TextEditingController noteController;
 
+  var wallets = <Wallet>[].obs;
+  var selectedWallet = Rxn<Wallet>();
+
   @override
   void onInit() {
     super.onInit();
     noteController = TextEditingController();
     loadCategories();
     loadTotalBalance();
+    loadWallets();
   }
 
   @override
@@ -35,6 +41,14 @@ class InputController extends GetxController {
         .typeEqualTo(selectedType.value)
         .findAll();
     categories.assignAll(data);
+  }
+
+  Future<void> loadWallets() async {
+    final data = await DatabaseService.isar.wallets.where().findAll();
+    wallets.assignAll(data);
+    if (data.isNotEmpty) {
+      selectedWallet.value = data.first;
+    }
   }
 
   Future<void> loadTotalBalance() async {
@@ -92,6 +106,13 @@ class InputController extends GetxController {
     final rawAmount = double.tryParse(amountStr.value) ?? 0;
     if (rawAmount == 0) return;
 
+    if (selectedWallet.value == null) {
+      Get.snackbar(
+          'Penolakan Sistem', 'Pilih sumber dana/dompet terlebih dahulu.',
+          backgroundColor: AppColors.error, colorText: Colors.white);
+      return;
+    }
+
     final category = await DatabaseService.isar.categorys
         .filter()
         .nameEqualTo(categoryName)
@@ -103,14 +124,20 @@ class InputController extends GetxController {
         ..amount = rawAmount
         ..date = DateTime.now()
         ..note = noteController.text.trim()
-        ..category.value = category;
+        ..category.value = category
+        ..wallet.value = selectedWallet.value;
 
       await DatabaseService.isar.writeTxn(() async {
         await DatabaseService.isar.transactions.put(newTxn);
         await newTxn.category.save();
+        await newTxn.wallet.save();
       });
 
       loadTotalBalance();
+
+      if (Get.isRegistered<HomeController>()) {
+        Get.find<HomeController>().loadHomeData();
+      }
 
       Get.snackbar(
         'Tersimpan!',

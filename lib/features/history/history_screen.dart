@@ -8,6 +8,7 @@ import 'edit_transaction_screen.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/utils/icon_mapper.dart';
 import '../../core/utils/pdf_helper.dart';
+import '../../core/utils/csv_helper.dart';
 
 class HistoryScreen extends StatelessWidget {
   final HistoryController c = Get.put(HistoryController());
@@ -24,16 +25,13 @@ class HistoryScreen extends StatelessWidget {
         title: Text('Riwayat Transaksi',
             style: TextStyle(fontSize: 20.sp, color: AppColors.textPrimary)),
         actions: [
-          IconButton(
-            icon: const Icon(Icons.picture_as_pdf, color: AppColors.primary),
-            onPressed: () {
-              if (c.transactions.isNotEmpty) {
-                PdfHelper.generateAndPrintReport(
-                  c.transactions.toList(),
-                  c.selectedMonth.value,
-                  c.selectedYear.value,
-                );
-              } else {
+          PopupMenuButton<String>(
+            icon: const Icon(Icons.download_rounded, color: AppColors.primary),
+            color: AppColors.card,
+            shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16.r)),
+            onSelected: (value) {
+              if (c.transactions.isEmpty) {
                 Get.snackbar(
                   'Data Kosong',
                   'Tidak ada transaksi untuk diekspor.',
@@ -41,8 +39,50 @@ class HistoryScreen extends StatelessWidget {
                   backgroundColor: AppColors.error,
                   colorText: AppColors.textPrimary,
                 );
+                return;
+              }
+              if (value == 'pdf') {
+                PdfHelper.generateAndPrintReport(
+                  c.transactions.toList(),
+                  c.selectedMonth.value,
+                  c.selectedYear.value,
+                );
+              } else if (value == 'csv') {
+                CsvHelper.generateAndShareCsv(
+                  c.transactions.toList(),
+                  c.selectedMonth.value,
+                  c.selectedYear.value,
+                );
               }
             },
+            itemBuilder: (context) => [
+              PopupMenuItem(
+                value: 'pdf',
+                child: Row(
+                  children: [
+                    Icon(Icons.picture_as_pdf,
+                        color: AppColors.error, size: 20.sp),
+                    SizedBox(width: 12.w),
+                    Text('Cetak Laporan PDF',
+                        style: TextStyle(
+                            color: AppColors.textPrimary, fontSize: 14.sp)),
+                  ],
+                ),
+              ),
+              PopupMenuItem(
+                value: 'csv',
+                child: Row(
+                  children: [
+                    Icon(Icons.table_chart,
+                        color: Colors.greenAccent, size: 20.sp),
+                    SizedBox(width: 12.w),
+                    Text('Ekspor Data CSV',
+                        style: TextStyle(
+                            color: AppColors.textPrimary, fontSize: 14.sp)),
+                  ],
+                ),
+              ),
+            ],
           ),
         ],
       ),
@@ -111,17 +151,15 @@ class HistoryScreen extends StatelessWidget {
                     child: Ink(
                       padding: EdgeInsets.all(16.w),
                       decoration: BoxDecoration(
-                        color: AppColors.card,
-                        borderRadius: BorderRadius.circular(16.r),
-                      ),
+                          color: AppColors.card,
+                          borderRadius: BorderRadius.circular(16.r)),
                       child: Row(
                         children: [
                           Container(
                             padding: EdgeInsets.all(12.w),
                             decoration: const BoxDecoration(
-                              color: AppColors.background,
-                              shape: BoxShape.circle,
-                            ),
+                                color: AppColors.background,
+                                shape: BoxShape.circle),
                             child:
                                 Icon(iconData, color: amountColor, size: 24.sp),
                           ),
@@ -130,13 +168,11 @@ class HistoryScreen extends StatelessWidget {
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Text(
-                                  categoryName,
-                                  style: TextStyle(
-                                      color: AppColors.textPrimary,
-                                      fontSize: 16.sp,
-                                      fontWeight: FontWeight.bold),
-                                ),
+                                Text(categoryName,
+                                    style: TextStyle(
+                                        color: AppColors.textPrimary,
+                                        fontSize: 16.sp,
+                                        fontWeight: FontWeight.bold)),
                                 if (hasNote) ...[
                                   SizedBox(height: 2.h),
                                   Text(
@@ -151,12 +187,10 @@ class HistoryScreen extends StatelessWidget {
                                   ),
                                 ],
                                 SizedBox(height: 4.h),
-                                Text(
-                                  formatDate,
-                                  style: TextStyle(
-                                      color: AppColors.textSecondary,
-                                      fontSize: 12.sp),
-                                ),
+                                Text(formatDate,
+                                    style: TextStyle(
+                                        color: AppColors.textSecondary,
+                                        fontSize: 12.sp)),
                               ],
                             ),
                           ),
@@ -202,9 +236,7 @@ class HistoryScreen extends StatelessWidget {
                 items: List.generate(
                     12,
                     (i) => DropdownMenuItem(
-                          value: i + 1,
-                          child: Text('Bulan ${i + 1}'),
-                        )),
+                        value: i + 1, child: Text('Bulan ${i + 1}'))),
                 onChanged: (val) {
                   if (val != null) c.changePeriod(val, c.selectedYear.value);
                 },
@@ -221,10 +253,8 @@ class HistoryScreen extends StatelessWidget {
                 icon: Icon(Icons.keyboard_arrow_down,
                     color: AppColors.primary, size: 20.sp),
                 items: [2025, 2026, 2027]
-                    .map((y) => DropdownMenuItem(
-                          value: y,
-                          child: Text(y.toString()),
-                        ))
+                    .map((y) =>
+                        DropdownMenuItem(value: y, child: Text(y.toString())))
                     .toList(),
                 onChanged: (val) {
                   if (val != null) c.changePeriod(c.selectedMonth.value, val);
@@ -251,16 +281,14 @@ class HistoryScreen extends StatelessWidget {
               ? IconButton(
                   icon: Icon(Icons.cancel,
                       color: AppColors.textSecondary, size: 18.sp),
-                  onPressed: c.clearSearch,
-                )
+                  onPressed: c.clearSearch)
               : const SizedBox()),
           filled: true,
           fillColor: AppColors.card,
           contentPadding: EdgeInsets.symmetric(vertical: 0.h),
           border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(16.r),
-            borderSide: BorderSide.none,
-          ),
+              borderRadius: BorderRadius.circular(16.r),
+              borderSide: BorderSide.none),
         ),
       ),
     );

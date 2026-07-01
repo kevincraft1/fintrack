@@ -5,12 +5,13 @@ import 'package:url_launcher/url_launcher.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../security/security_controller.dart';
 import '../../backup/backup_controller.dart';
+import '../../category/category_management_screen.dart';
+import '../../wallet/wallet_management_screen.dart';
 
 class PreferenceMenu extends StatelessWidget {
   const PreferenceMenu({super.key});
 
   Future<void> _launchPrivacyPolicy() async {
-    // Ganti URL ini dengan URL Google Sites / Web Kebijakan Privasi asli Anda nanti
     final Uri url = Uri.parse('https://policies.google.com/privacy');
     if (!await launchUrl(url, mode: LaunchMode.externalApplication)) {
       Get.snackbar('Error', 'Tidak dapat membuka browser.',
@@ -56,6 +57,22 @@ class PreferenceMenu extends StatelessWidget {
             ),
             child: Column(
               children: [
+                _buildMenuItem(
+                  Icons.account_balance_wallet_outlined,
+                  'Kelola Dompet',
+                  'Atur saldo & multi-akun',
+                  onTap: () => Get.to(() => WalletManagementScreen()),
+                ),
+                Divider(
+                    color: AppColors.textSecondary.withOpacity(0.1), height: 1),
+                _buildMenuItem(
+                  Icons.category_outlined,
+                  'Kelola Kategori',
+                  'Atur jenis pemasukan & pengeluaran',
+                  onTap: () => Get.to(() => CategoryManagementScreen()),
+                ),
+                Divider(
+                    color: AppColors.textSecondary.withOpacity(0.1), height: 1),
                 Obx(() => _buildSwitchItem(
                       Icons.lock_outline,
                       'Keamanan Privasi',

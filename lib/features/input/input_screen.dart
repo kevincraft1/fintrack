@@ -1,16 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:flutter_animate/flutter_animate.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'input_controller.dart';
-import 'widgets/balance_card.dart';
-import 'widgets/type_toggle.dart';
 import 'widgets/amount_display.dart';
-import 'widgets/note_input.dart';
+import 'widgets/type_toggle.dart';
 import 'widgets/category_row.dart';
+import 'widgets/wallet_row.dart';
+import 'widgets/note_input.dart';
 import 'widgets/numpad_grid.dart';
-import '../history/history_screen.dart';
-import '../dashboard/dashboard_screen.dart';
-import '../category/category_management_screen.dart';
 import '../../core/theme/app_colors.dart';
 
 class InputScreen extends StatelessWidget {
@@ -22,50 +19,34 @@ class InputScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.background,
-      resizeToAvoidBottomInset: false,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new,
-              color: AppColors.textPrimary),
+          icon: const Icon(Icons.close, color: AppColors.textPrimary),
           onPressed: () => Get.back(),
         ),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.category, color: AppColors.textPrimary),
-            onPressed: () => Get.to(() => CategoryManagementScreen(),
-                transition: Transition.rightToLeftWithFade),
-          ),
-          IconButton(
-            icon: const Icon(Icons.pie_chart, color: AppColors.textPrimary),
-            onPressed: () => Get.to(() => DashboardScreen(),
-                transition: Transition.rightToLeftWithFade),
-          ),
-          IconButton(
-            icon: const Icon(Icons.history, color: AppColors.textPrimary),
-            onPressed: () => Get.to(() => HistoryScreen(),
-                transition: Transition.rightToLeftWithFade),
-          )
-        ],
+        title: Text('Transaksi Baru',
+            style: TextStyle(
+                color: AppColors.textPrimary,
+                fontSize: 18.sp,
+                fontWeight: FontWeight.bold)),
+        centerTitle: true,
       ),
-      body: SafeArea(
-        child: Column(
-          children: [
-            BalanceCard()
-                .animate()
-                .fadeIn(delay: 100.ms)
-                .slideY(begin: -0.2, end: 0),
-            TypeToggle()
-                .animate()
-                .fadeIn(delay: 150.ms)
-                .slideX(begin: -0.1, end: 0),
-            Expanded(flex: 3, child: AmountDisplay()),
-            NoteInput().animate().fadeIn(delay: 220.ms),
-            CategoryRow().animate().fadeIn(delay: 250.ms),
-            Expanded(flex: 6, child: NumpadGrid()),
-          ],
-        ),
+      body: Column(
+        children: [
+          TypeToggle(),
+          SizedBox(height: 16.h),
+          AmountDisplay(),
+          SizedBox(height: 24.h),
+          WalletRow(),
+          SizedBox(height: 24.h),
+          CategoryRow(),
+          SizedBox(height: 16.h),
+          NoteInput(),
+          const Spacer(),
+          NumpadGrid(),
+        ],
       ),
     );
   }
