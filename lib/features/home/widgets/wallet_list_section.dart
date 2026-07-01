@@ -31,7 +31,7 @@ class WalletListSection extends StatelessWidget {
           ),
           SizedBox(height: 12.h),
           SizedBox(
-            height: 130.h,
+            height: 100.h,
             child: ListView.builder(
               scrollDirection: Axis.horizontal,
               physics: const BouncingScrollPhysics(),
@@ -42,7 +42,7 @@ class WalletListSection extends StatelessWidget {
                 final balance = c.walletBalances[wallet.id] ?? 0.0;
 
                 return Container(
-                  width: 150.w,
+                  width: 170.w,
                   margin: EdgeInsets.only(right: 12.w),
                   padding: EdgeInsets.all(16.w),
                   decoration: BoxDecoration(
@@ -54,24 +54,35 @@ class WalletListSection extends StatelessWidget {
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Icon(IconMapper.getIcon(wallet.iconName),
-                          color: AppColors.primary, size: 24.sp),
-                      SizedBox(height: 12.h),
-                      Text(wallet.name,
-                          style: TextStyle(
-                              color: AppColors.textSecondary, fontSize: 12.sp),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis),
-                      SizedBox(height: 4.h),
-                      Text(formatCurrency.format(balance),
-                          style: TextStyle(
-                              color: AppColors.textPrimary,
-                              fontSize: 14.sp,
-                              fontWeight: FontWeight.bold),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis),
+                      Row(
+                        children: [
+                          Icon(IconMapper.getIcon(wallet.iconName),
+                              color: AppColors.primary, size: 20.sp),
+                          SizedBox(width: 8.w),
+                          Expanded(
+                            child: Text(
+                              wallet.name,
+                              style: TextStyle(
+                                  color: AppColors.textSecondary,
+                                  fontSize: 13.sp,
+                                  fontWeight: FontWeight.w600),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                        ],
+                      ),
+                      const Spacer(),
+                      Text(
+                        formatCurrency.format(balance),
+                        style: TextStyle(
+                            color: AppColors.textPrimary,
+                            fontSize: 15.sp,
+                            fontWeight: FontWeight.bold),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
                     ],
                   ),
                 );

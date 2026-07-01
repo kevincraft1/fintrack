@@ -28,29 +28,38 @@ class HomeScreen extends StatelessWidget {
               parent: BouncingScrollPhysics()),
           slivers: [
             SliverAppBar(
-              expandedHeight: 80.h,
               backgroundColor: AppColors.background,
               elevation: 0,
               pinned: true,
-              flexibleSpace: FlexibleSpaceBar(
-                titlePadding:
-                    EdgeInsets.symmetric(horizontal: 24.w, vertical: 16.h),
-                title: Text(
-                  'FinTrack Pro',
-                  style: TextStyle(
-                      color: AppColors.textPrimary,
-                      fontSize: 20.sp,
-                      fontWeight: FontWeight.bold),
-                ),
+              centerTitle: false,
+              titleSpacing: 24.w,
+              toolbarHeight: 70.h,
+              title: Text(
+                'FinTrack Pro',
+                style: TextStyle(
+                    color: AppColors.textPrimary,
+                    fontSize: 20.sp,
+                    fontWeight: FontWeight.bold),
               ),
               actions: [
-                IconButton(
-                  icon: Icon(Icons.account_circle,
-                      color: AppColors.primary, size: 28.sp),
-                  onPressed: () => Get.to(() => ProfileScreen(),
-                      transition: Transition.rightToLeftWithFade),
+                Padding(
+                  padding: EdgeInsets.only(right: 24.w),
+                  child: GestureDetector(
+                    onTap: () => Get.to(() => ProfileScreen(),
+                        transition: Transition.rightToLeftWithFade),
+                    child: Container(
+                      padding: EdgeInsets.all(8.w),
+                      decoration: BoxDecoration(
+                        color: AppColors.card,
+                        shape: BoxShape.circle,
+                        border: Border.all(
+                            color: AppColors.primary.withOpacity(0.2)),
+                      ),
+                      child: Icon(Icons.person_outline,
+                          color: AppColors.primary, size: 22.sp),
+                    ),
+                  ),
                 ),
-                SizedBox(width: 12.w),
               ],
             ),
             SliverToBoxAdapter(

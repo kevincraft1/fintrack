@@ -32,118 +32,168 @@ class BalanceSummaryCard extends StatelessWidget {
 
     return Container(
       margin: EdgeInsets.symmetric(horizontal: 24.w),
-      padding: EdgeInsets.all(24.w),
       decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(20.r),
         gradient: const LinearGradient(
-          colors: [AppColors.primary, Color(0xFF0D9488)],
+          colors: [Color(0xFF111827), Color(0xFF1F2937)],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
-        borderRadius: BorderRadius.circular(24.r),
         boxShadow: [
           BoxShadow(
-              color: AppColors.primary.withOpacity(0.3),
-              blurRadius: 12,
-              offset: const Offset(0, 6)),
+              color: const Color(0xFF111827).withOpacity(0.4),
+              blurRadius: 16,
+              offset: const Offset(0, 8)),
         ],
+        border: Border.all(color: Colors.white.withOpacity(0.12), width: 1),
       ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
+      child: Stack(
         children: [
-          Text('Total Saldo (Bulan $currentMonth)',
-              style: TextStyle(
-                  color: Colors.white.withOpacity(0.8), fontSize: 14.sp)),
-          SizedBox(height: 8.h),
-          Obx(() => Text(
-                formatCurrency.format(c.totalBalance.value),
-                style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 32.sp,
-                    fontWeight: FontWeight.bold,
-                    letterSpacing: -1),
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-              )),
-          SizedBox(height: 24.h),
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Expanded(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      children: [
-                        Icon(Icons.arrow_downward,
-                            color: Colors.white70, size: 16.sp),
-                        SizedBox(width: 4.w),
-                        Expanded(
-                          child: Text(
-                            'Pemasukan',
-                            style: TextStyle(
-                                color: Colors.white70, fontSize: 12.sp),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ),
-                      ],
-                    ),
-                    SizedBox(height: 4.h),
-                    Obx(() => Text(
-                          formatCurrency.format(c.totalIncome.value),
-                          style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 14.sp,
-                              fontWeight: FontWeight.w600),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        )),
+          Positioned(
+            right: -60.w,
+            top: -60.h,
+            child: Container(
+              width: 200.w,
+              height: 200.w,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                gradient: RadialGradient(
+                  colors: [
+                    AppColors.primary.withOpacity(0.2),
+                    Colors.transparent
                   ],
                 ),
               ),
-              Container(
-                width: 1,
-                height: 40.h,
-                margin: EdgeInsets.symmetric(horizontal: 12.w),
-                color: Colors.white.withOpacity(0.2),
-              ),
-              Expanded(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.start,
+            ),
+          ),
+          Padding(
+            padding: EdgeInsets.all(24.w),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Row(
-                      children: [
-                        Icon(Icons.arrow_upward,
-                            color: Colors.white70, size: 16.sp),
-                        SizedBox(width: 4.w),
-                        Expanded(
-                          child: Text(
-                            'Pengeluaran',
-                            style: TextStyle(
-                                color: Colors.white70, fontSize: 12.sp),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ),
-                      ],
+                    Text(
+                      'Total Saldo (Bulan $currentMonth)',
+                      style: TextStyle(
+                          color: Colors.white70,
+                          fontSize: 13.sp,
+                          fontWeight: FontWeight.w500,
+                          letterSpacing: 0.5),
                     ),
-                    SizedBox(height: 4.h),
-                    Obx(() => Text(
-                          formatCurrency.format(c.totalExpense.value),
-                          style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 14.sp,
-                              fontWeight: FontWeight.w600),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        )),
+                    Icon(Icons.account_balance_wallet,
+                        color: AppColors.primary, size: 18.sp),
                   ],
                 ),
-              ),
-            ],
+                SizedBox(height: 12.h),
+                Obx(() => Text(
+                      formatCurrency.format(c.totalBalance.value),
+                      style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 32.sp,
+                          fontWeight: FontWeight.w800,
+                          letterSpacing: -1),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    )),
+                SizedBox(height: 28.h),
+                Container(
+                  padding:
+                      EdgeInsets.symmetric(vertical: 16.h, horizontal: 16.w),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withOpacity(0.04),
+                    borderRadius: BorderRadius.circular(16.r),
+                    border: Border.all(color: Colors.white.withOpacity(0.06)),
+                  ),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              children: [
+                                Icon(Icons.arrow_downward_rounded,
+                                    color: const Color(0xFF10B981),
+                                    size: 16.sp),
+                                SizedBox(width: 6.w),
+                                Expanded(
+                                  child: Text(
+                                    'Pemasukan',
+                                    style: TextStyle(
+                                        color: Colors.white70,
+                                        fontSize: 12.sp,
+                                        fontWeight: FontWeight.w500),
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ),
+                              ],
+                            ),
+                            SizedBox(height: 8.h),
+                            Obx(() => Text(
+                                  formatCurrency.format(c.totalIncome.value),
+                                  style: TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 14.sp,
+                                      fontWeight: FontWeight.w700),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                )),
+                          ],
+                        ),
+                      ),
+                      Container(
+                        width: 1,
+                        height: 36.h,
+                        margin: EdgeInsets.symmetric(horizontal: 16.w),
+                        color: Colors.white.withOpacity(0.15),
+                      ),
+                      Expanded(
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              children: [
+                                Icon(Icons.arrow_upward_rounded,
+                                    color: const Color(0xFFEF4444),
+                                    size: 16.sp),
+                                SizedBox(width: 6.w),
+                                Expanded(
+                                  child: Text(
+                                    'Pengeluaran',
+                                    style: TextStyle(
+                                        color: Colors.white70,
+                                        fontSize: 12.sp,
+                                        fontWeight: FontWeight.w500),
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ),
+                              ],
+                            ),
+                            SizedBox(height: 8.h),
+                            Obx(() => Text(
+                                  formatCurrency.format(c.totalExpense.value),
+                                  style: TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 14.sp,
+                                      fontWeight: FontWeight.w700),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                )),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
           ),
         ],
       ),
