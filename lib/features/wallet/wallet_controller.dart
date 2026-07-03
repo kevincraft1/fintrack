@@ -5,6 +5,7 @@ import '../../data/database_service.dart';
 import '../../data/models/wallet.dart';
 import '../../data/models/transaction.dart';
 import '../../core/theme/app_colors.dart';
+import '../home/home_controller.dart';
 
 class WalletController extends GetxController {
   var wallets = <Wallet>[].obs;
@@ -27,34 +28,51 @@ class WalletController extends GetxController {
     final newWallet = Wallet()
       ..name = name.trim()
       ..iconName = iconName
-      ..initialBalance = initialBalance;
+      ..initialBalance = initialBalance
+      ..balance = initialBalance;
 
-    await DatabaseService.isar.writeTxn(() async {
-      await DatabaseService.isar.wallets.put(newWallet);
-    });
+    try {
+      await DatabaseService.isar.writeTxn(() async {
+        await DatabaseService.isar.wallets.put(newWallet);
+      });
 
-    loadWallets();
-    Get.back();
+      if (Get.isRegistered<HomeController>()) {
+        Get.find<HomeController>().loadHomeData();
+      }
 
-    Get.snackbar(
-      'Berhasil',
-      'Dompet baru ditambahkan.',
-      backgroundColor: AppColors.primary,
-      colorText: Colors.white,
-      snackPosition: SnackPosition.BOTTOM,
-    );
+      loadWallets();
+      Get.back();
+
+      Get.snackbar(
+        'Berhasil',
+        'Dompet baru ditambahkan dan saldo diperbarui.',
+        backgroundColor: AppColors.primary,
+        colorText: Colors.white,
+        snackPosition: SnackPosition.BOTTOM,
+      );
+    } catch (e) {
+      Get.snackbar('Sistem Error', 'Gagal menyimpan dompet',
+          backgroundColor: AppColors.error, colorText: Colors.white);
+    }
   }
 
   Future<void> deleteWallet(int id) async {
-    final linkedTxnCount = await DatabaseService.isar.transactions
+    final isar = DatabaseService.isar;
+
+    final linkedAsSource =
+        await isar.transactions.filter().wallet((q) => q.idEqualTo(id)).count();
+
+    final linkedAsTarget = await isar.transactions
         .filter()
-        .wallet((q) => q.idEqualTo(id))
+        .toWallet((q) => q.idEqualTo(id))
         .count();
 
-    if (linkedTxnCount > 0) {
+    final totalLinked = linkedAsSource + linkedAsTarget;
+
+    if (totalLinked > 0) {
       Get.snackbar(
         'Penolakan Sistem',
-        'Dompet ini sedang digunakan oleh $linkedTxnCount transaksi.',
+        'Dompet ini sedang tertaut dengan $totalLinked riwayat transaksi.',
         backgroundColor: AppColors.error,
         colorText: Colors.white,
         snackPosition: SnackPosition.BOTTOM,
@@ -63,7 +81,7 @@ class WalletController extends GetxController {
       return;
     }
 
-    final count = await DatabaseService.isar.wallets.count();
+    final count = await isar.wallets.count();
     if (count <= 1) {
       Get.snackbar(
         'Penolakan Sistem',
@@ -75,10 +93,19 @@ class WalletController extends GetxController {
       return;
     }
 
-    await DatabaseService.isar.writeTxn(() async {
-      await DatabaseService.isar.wallets.delete(id);
-    });
+    try {
+      await isar.writeTxn(() async {
+        await isar.wallets.delete(id);
+      });
 
-    loadWallets();
+      if (Get.isRegistered<HomeController>()) {
+        Get.find<HomeController>().loadHomeData();
+      }
+
+      loadWallets();
+    } catch (e) {
+      Get.snackbar('Sistem Error', 'Gagal menghapus dompet',
+          backgroundColor: AppColors.error, colorText: Colors.white);
+    }
   }
 }

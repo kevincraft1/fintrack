@@ -35,26 +35,31 @@ class CategoryController extends GetxController {
     final newCategory = Category()
       ..name = name.trim()
       ..iconName = iconName
-      ..type = selectedType.value;
+      ..type = selectedType.value
+      ..colorHex = '#3B82F6';
 
-    await DatabaseService.isar.writeTxn(() async {
-      await DatabaseService.isar.categorys.put(newCategory);
-    });
+    try {
+      await DatabaseService.isar.writeTxn(() async {
+        await DatabaseService.isar.categorys.put(newCategory);
+      });
 
-    loadCategories();
-    Get.back();
+      loadCategories();
+      Get.back();
 
-    Get.snackbar(
-      'Berhasil',
-      'Kategori baru ditambahkan.',
-      backgroundColor: AppColors.primary,
-      colorText: Colors.white,
-      snackPosition: SnackPosition.BOTTOM,
-    );
+      Get.snackbar(
+        'Berhasil',
+        'Kategori baru ditambahkan.',
+        backgroundColor: AppColors.primary,
+        colorText: Colors.white,
+        snackPosition: SnackPosition.BOTTOM,
+      );
+    } catch (e) {
+      Get.snackbar('Sistem Error', 'Gagal menyimpan kategori',
+          backgroundColor: AppColors.error, colorText: Colors.white);
+    }
   }
 
   Future<void> deleteCategory(int id) async {
-    // PROTEKSI: Cek apakah kategori ini masih dipakai di transaksi
     final linkedTxnCount = await DatabaseService.isar.transactions
         .filter()
         .category((q) => q.idEqualTo(id))
@@ -63,20 +68,24 @@ class CategoryController extends GetxController {
     if (linkedTxnCount > 0) {
       Get.snackbar(
         'Penolakan Sistem',
-        'Kategori ini sedang digunakan oleh $linkedTxnCount transaksi. Hapus atau ubah transaksi tersebut terlebih dahulu.',
+        'Kategori ini sedang digunakan oleh $linkedTxnCount transaksi.',
         backgroundColor: AppColors.error,
         colorText: Colors.white,
         snackPosition: SnackPosition.BOTTOM,
         duration: const Duration(seconds: 4),
       );
-      return; // Batalkan proses penghapusan
+      return;
     }
 
-    // Jika aman, lakukan penghapusan
-    await DatabaseService.isar.writeTxn(() async {
-      await DatabaseService.isar.categorys.delete(id);
-    });
+    try {
+      await DatabaseService.isar.writeTxn(() async {
+        await DatabaseService.isar.categorys.delete(id);
+      });
 
-    loadCategories();
+      loadCategories();
+    } catch (e) {
+      Get.snackbar('Sistem Error', 'Gagal menghapus kategori',
+          backgroundColor: AppColors.error, colorText: Colors.white);
+    }
   }
 }
