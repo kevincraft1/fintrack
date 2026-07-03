@@ -17,6 +17,9 @@ class InputScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Deteksi cerdas: Apakah keyboard bawaan Android/iOS sedang terbuka?
+    final isKeyboardOpen = MediaQuery.of(context).viewInsets.bottom > 0;
+
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
@@ -41,23 +44,30 @@ class InputScreen extends StatelessWidget {
               child: Column(
                 children: [
                   TypeToggle(),
-                  SizedBox(height: 16.h),
                   AmountDisplay(),
-                  SizedBox(height: 24.h),
-                  WalletRow(),
-                  SizedBox(height: 24.h),
-                  CategoryRow(),
-                  SizedBox(height: 16.h),
-                  NoteInput(),
-                  SizedBox(height: 16.h),
+                  Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 24.w),
+                    child: Column(
+                      children: [
+                        WalletRow(),
+                        SizedBox(height: 16.h),
+                        NoteInput(),
+                        SizedBox(height: 16.h),
+                        CategoryRow(),
+                        SizedBox(height: 24.h),
+                      ],
+                    ),
+                  ),
                 ],
               ),
             ),
           ),
-          SizedBox(
-            height: 320.h,
-            child: NumpadGrid(),
-          ),
+          // Sembunyikan Numpad kustom jika keyboard native sedang terbuka
+          if (!isKeyboardOpen)
+            SizedBox(
+              height: 320.h,
+              child: NumpadGrid(),
+            ),
         ],
       ),
     );

@@ -4,6 +4,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../../input/input_screen.dart';
 import '../../history/history_screen.dart';
 import '../../budget/budget_screen.dart';
+import '../../statistics/statistics_screen.dart';
 import '../../../core/theme/app_colors.dart';
 
 class QuickActions extends StatelessWidget {
@@ -22,7 +23,8 @@ class QuickActions extends StatelessWidget {
               Icons.history, 'Riwayat', () => Get.to(() => HistoryScreen())),
           _buildActionBtn(Icons.track_changes, 'Anggaran',
               () => Get.to(() => BudgetScreen())),
-          _buildActionBtn(Icons.bar_chart, 'Statistik', () {}),
+          _buildActionBtn(Icons.bar_chart, 'Statistik',
+              () => Get.to(() => StatisticsScreen())),
         ],
       ),
     );

@@ -86,10 +86,19 @@ class InputController extends GetxController {
   }
 
   void addDigit(String digit) {
-    if (amountStr.value == '0' && digit != '0') {
-      amountStr.value = digit;
-    } else if (amountStr.value != '0' && amountStr.value.length < 12) {
-      amountStr.value += digit;
+    if (amountStr.value == '0') {
+      if (digit != '0' && digit != '000') {
+        amountStr.value = digit;
+      }
+    } else {
+      if (amountStr.value.length + digit.length <= 15) {
+        amountStr.value += digit;
+      } else {
+        int remaining = 15 - amountStr.value.length;
+        if (remaining > 0) {
+          amountStr.value += digit.substring(0, remaining);
+        }
+      }
     }
   }
 
