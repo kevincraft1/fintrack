@@ -24,10 +24,12 @@ class LockScreen extends StatelessWidget {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Icon(
-                  Icons.security,
-                  color: AppColors.primary,
-                  size: 80.sp,
+                // INTEGRASI LOGO DENGAN SAFETY CONSTRAINT
+                Image.asset(
+                  'assets/images/fintrack-pro.png',
+                  width: 100.w, // Batasan Lebar Maksimal
+                  height: 100.w, // Batasan Tinggi Maksimal
+                  fit: BoxFit.contain,
                 )
                     .animate(
                         onPlay: (controller) =>

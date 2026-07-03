@@ -35,12 +35,24 @@ class HomeScreen extends StatelessWidget {
               centerTitle: false,
               titleSpacing: 24.w,
               toolbarHeight: 70.h,
-              title: Text(
-                'FinTrack Pro',
-                style: TextStyle(
-                    color: AppColors.textPrimary,
-                    fontSize: 20.sp,
-                    fontWeight: FontWeight.bold),
+              title: Row(
+                children: [
+                  // INTEGRASI LOGO KECIL DI BERANDA (SAFETY CONSTRAINT)
+                  Image.asset(
+                    'assets/images/fintrack-pro.png',
+                    width: 32.w,
+                    height: 32.w,
+                    fit: BoxFit.contain,
+                  ),
+                  SizedBox(width: 12.w),
+                  Text(
+                    'FinTrack Pro',
+                    style: TextStyle(
+                        color: AppColors.textPrimary,
+                        fontSize: 20.sp,
+                        fontWeight: FontWeight.bold),
+                  ),
+                ],
               ),
               actions: [
                 Padding(

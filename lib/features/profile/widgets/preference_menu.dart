@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../../core/theme/app_colors.dart';
+import '../../../core/widgets/version_footer.dart';
 import '../../security/security_controller.dart';
 import '../../backup/backup_controller.dart';
 import '../../category/category_management_screen.dart';
@@ -20,17 +21,39 @@ class PreferenceMenu extends StatelessWidget {
   }
 
   void _showAboutApp(BuildContext context) {
+    // Mengambil versi secara dinamis dari AppVersionController
+    final versionC = Get.find<AppVersionController>();
+
     showAboutDialog(
       context: context,
       applicationName: 'FinTrack Pro',
-      applicationVersion: 'v1.0.0 (Production Release)',
+      applicationVersion: '${versionC.version.value} (Production Release)',
       applicationIcon: ClipRRect(
         borderRadius: BorderRadius.circular(12.r),
         child: Image.asset('assets/images/fintrack-pro.png',
-            width: 48.w, height: 48.w),
+            width: 48.w, height: 48.w, fit: BoxFit.contain),
       ),
       applicationLegalese:
           '© 2026 FinTrack Pro.\nDikembangkan secara eksklusif untuk efisiensi finansial mutlak.',
+    );
+  }
+
+  void _showLicenses(BuildContext context) {
+    final versionC = Get.find<AppVersionController>();
+
+    showLicensePage(
+      context: context,
+      applicationName: 'FinTrack Pro',
+      applicationVersion: versionC.version.value,
+      applicationIcon: Padding(
+        padding: EdgeInsets.all(8.w),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(12.r),
+          child: Image.asset('assets/images/fintrack-pro.png',
+              width: 64.w, height: 64.w, fit: BoxFit.contain),
+        ),
+      ),
+      applicationLegalese: '© 2026 FinTrack Pro. Hak Cipta Dilindungi.',
     );
   }
 
@@ -107,9 +130,17 @@ class PreferenceMenu extends StatelessWidget {
                 Divider(
                     color: AppColors.textSecondary.withOpacity(0.1), height: 1),
                 _buildMenuItem(
+                  Icons.description_outlined,
+                  'Lisensi Open Source',
+                  'Legalitas pustaka pihak ketiga',
+                  onTap: () => _showLicenses(context),
+                ),
+                Divider(
+                    color: AppColors.textSecondary.withOpacity(0.1), height: 1),
+                _buildMenuItem(
                   Icons.info_outline,
                   'Tentang Aplikasi',
-                  'FinTrack Pro v1.0.0',
+                  'Informasi versi FinTrack Pro',
                   onTap: () => _showAboutApp(context),
                 ),
               ],
