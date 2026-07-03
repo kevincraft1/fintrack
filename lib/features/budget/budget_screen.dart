@@ -7,6 +7,7 @@ import 'budget_controller.dart';
 import '../../data/models/category.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/utils/icon_mapper.dart';
+import '../../core/widgets/version_footer.dart';
 
 class BudgetScreen extends StatelessWidget {
   final BudgetController c = Get.put(BudgetController());
@@ -158,6 +159,7 @@ class BudgetScreen extends StatelessWidget {
               );
             }),
           ),
+          VersionFooter(),
         ],
       ),
     );

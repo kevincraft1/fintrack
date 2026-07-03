@@ -51,6 +51,12 @@ const TransactionSchema = CollectionSchema(
       name: r'wallet',
       target: r'Wallet',
       single: true,
+    ),
+    r'toWallet': LinkSchema(
+      id: -4029663867618780578,
+      name: r'toWallet',
+      target: r'Wallet',
+      single: true,
     )
   },
   embeddedSchemas: {},
@@ -123,7 +129,7 @@ Id _transactionGetId(Transaction object) {
 }
 
 List<IsarLinkBase<dynamic>> _transactionGetLinks(Transaction object) {
-  return [object.category, object.wallet];
+  return [object.category, object.wallet, object.toWallet];
 }
 
 void _transactionAttach(
@@ -131,6 +137,7 @@ void _transactionAttach(
   object.id = id;
   object.category.attach(col, col.isar.collection<Category>(), r'category', id);
   object.wallet.attach(col, col.isar.collection<Wallet>(), r'wallet', id);
+  object.toWallet.attach(col, col.isar.collection<Wallet>(), r'toWallet', id);
 }
 
 extension TransactionQueryWhereSort
@@ -560,6 +567,20 @@ extension TransactionQueryLinks
   QueryBuilder<Transaction, Transaction, QAfterFilterCondition> walletIsNull() {
     return QueryBuilder.apply(this, (query) {
       return query.linkLength(r'wallet', 0, true, 0, true);
+    });
+  }
+
+  QueryBuilder<Transaction, Transaction, QAfterFilterCondition> toWallet(
+      FilterQuery<Wallet> q) {
+    return QueryBuilder.apply(this, (query) {
+      return query.link(q, r'toWallet');
+    });
+  }
+
+  QueryBuilder<Transaction, Transaction, QAfterFilterCondition>
+      toWalletIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.linkLength(r'toWallet', 0, true, 0, true);
     });
   }
 }

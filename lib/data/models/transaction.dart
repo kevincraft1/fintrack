@@ -11,10 +11,8 @@ class Transaction {
   late double amount;
   late DateTime date;
   String? note;
-
-  // Relasi ke Kategori
   final category = IsarLink<Category>();
-
-  // Relasi ke Dompet/Akun
   final wallet = IsarLink<Wallet>();
+
+  final toWallet = IsarLink<Wallet>();
 }

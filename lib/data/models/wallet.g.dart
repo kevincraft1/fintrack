@@ -17,18 +17,23 @@ const WalletSchema = CollectionSchema(
   name: r'Wallet',
   id: 8666280453615945738,
   properties: {
-    r'iconName': PropertySchema(
+    r'balance': PropertySchema(
       id: 0,
+      name: r'balance',
+      type: IsarType.double,
+    ),
+    r'iconName': PropertySchema(
+      id: 1,
       name: r'iconName',
       type: IsarType.string,
     ),
     r'initialBalance': PropertySchema(
-      id: 1,
+      id: 2,
       name: r'initialBalance',
       type: IsarType.double,
     ),
     r'name': PropertySchema(
-      id: 2,
+      id: 3,
       name: r'name',
       type: IsarType.string,
     )
@@ -38,21 +43,7 @@ const WalletSchema = CollectionSchema(
   deserialize: _walletDeserialize,
   deserializeProp: _walletDeserializeProp,
   idName: r'id',
-  indexes: {
-    r'name': IndexSchema(
-      id: 879695947855722453,
-      name: r'name',
-      unique: true,
-      replace: false,
-      properties: [
-        IndexPropertySchema(
-          name: r'name',
-          type: IndexType.hash,
-          caseSensitive: true,
-        )
-      ],
-    )
-  },
+  indexes: {},
   links: {},
   embeddedSchemas: {},
   getId: _walletGetId,
@@ -78,9 +69,10 @@ void _walletSerialize(
   List<int> offsets,
   Map<Type, List<int>> allOffsets,
 ) {
-  writer.writeString(offsets[0], object.iconName);
-  writer.writeDouble(offsets[1], object.initialBalance);
-  writer.writeString(offsets[2], object.name);
+  writer.writeDouble(offsets[0], object.balance);
+  writer.writeString(offsets[1], object.iconName);
+  writer.writeDouble(offsets[2], object.initialBalance);
+  writer.writeString(offsets[3], object.name);
 }
 
 Wallet _walletDeserialize(
@@ -90,10 +82,11 @@ Wallet _walletDeserialize(
   Map<Type, List<int>> allOffsets,
 ) {
   final object = Wallet();
-  object.iconName = reader.readString(offsets[0]);
+  object.balance = reader.readDouble(offsets[0]);
+  object.iconName = reader.readString(offsets[1]);
   object.id = id;
-  object.initialBalance = reader.readDouble(offsets[1]);
-  object.name = reader.readString(offsets[2]);
+  object.initialBalance = reader.readDouble(offsets[2]);
+  object.name = reader.readString(offsets[3]);
   return object;
 }
 
@@ -105,10 +98,12 @@ P _walletDeserializeProp<P>(
 ) {
   switch (propertyId) {
     case 0:
-      return (reader.readString(offset)) as P;
-    case 1:
       return (reader.readDouble(offset)) as P;
+    case 1:
+      return (reader.readString(offset)) as P;
     case 2:
+      return (reader.readDouble(offset)) as P;
+    case 3:
       return (reader.readString(offset)) as P;
     default:
       throw IsarError('Unknown property with id $propertyId');
@@ -125,60 +120,6 @@ List<IsarLinkBase<dynamic>> _walletGetLinks(Wallet object) {
 
 void _walletAttach(IsarCollection<dynamic> col, Id id, Wallet object) {
   object.id = id;
-}
-
-extension WalletByIndex on IsarCollection<Wallet> {
-  Future<Wallet?> getByName(String name) {
-    return getByIndex(r'name', [name]);
-  }
-
-  Wallet? getByNameSync(String name) {
-    return getByIndexSync(r'name', [name]);
-  }
-
-  Future<bool> deleteByName(String name) {
-    return deleteByIndex(r'name', [name]);
-  }
-
-  bool deleteByNameSync(String name) {
-    return deleteByIndexSync(r'name', [name]);
-  }
-
-  Future<List<Wallet?>> getAllByName(List<String> nameValues) {
-    final values = nameValues.map((e) => [e]).toList();
-    return getAllByIndex(r'name', values);
-  }
-
-  List<Wallet?> getAllByNameSync(List<String> nameValues) {
-    final values = nameValues.map((e) => [e]).toList();
-    return getAllByIndexSync(r'name', values);
-  }
-
-  Future<int> deleteAllByName(List<String> nameValues) {
-    final values = nameValues.map((e) => [e]).toList();
-    return deleteAllByIndex(r'name', values);
-  }
-
-  int deleteAllByNameSync(List<String> nameValues) {
-    final values = nameValues.map((e) => [e]).toList();
-    return deleteAllByIndexSync(r'name', values);
-  }
-
-  Future<Id> putByName(Wallet object) {
-    return putByIndex(r'name', object);
-  }
-
-  Id putByNameSync(Wallet object, {bool saveLinks = true}) {
-    return putByIndexSync(r'name', object, saveLinks: saveLinks);
-  }
-
-  Future<List<Id>> putAllByName(List<Wallet> objects) {
-    return putAllByIndex(r'name', objects);
-  }
-
-  List<Id> putAllByNameSync(List<Wallet> objects, {bool saveLinks = true}) {
-    return putAllByIndexSync(r'name', objects, saveLinks: saveLinks);
-  }
 }
 
 extension WalletQueryWhereSort on QueryBuilder<Wallet, Wallet, QWhere> {
@@ -254,52 +195,71 @@ extension WalletQueryWhere on QueryBuilder<Wallet, Wallet, QWhereClause> {
       ));
     });
   }
+}
 
-  QueryBuilder<Wallet, Wallet, QAfterWhereClause> nameEqualTo(String name) {
+extension WalletQueryFilter on QueryBuilder<Wallet, Wallet, QFilterCondition> {
+  QueryBuilder<Wallet, Wallet, QAfterFilterCondition> balanceEqualTo(
+    double value, {
+    double epsilon = Query.epsilon,
+  }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addWhereClause(IndexWhereClause.equalTo(
-        indexName: r'name',
-        value: [name],
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'balance',
+        value: value,
+        epsilon: epsilon,
       ));
     });
   }
 
-  QueryBuilder<Wallet, Wallet, QAfterWhereClause> nameNotEqualTo(String name) {
+  QueryBuilder<Wallet, Wallet, QAfterFilterCondition> balanceGreaterThan(
+    double value, {
+    bool include = false,
+    double epsilon = Query.epsilon,
+  }) {
     return QueryBuilder.apply(this, (query) {
-      if (query.whereSort == Sort.asc) {
-        return query
-            .addWhereClause(IndexWhereClause.between(
-              indexName: r'name',
-              lower: [],
-              upper: [name],
-              includeUpper: false,
-            ))
-            .addWhereClause(IndexWhereClause.between(
-              indexName: r'name',
-              lower: [name],
-              includeLower: false,
-              upper: [],
-            ));
-      } else {
-        return query
-            .addWhereClause(IndexWhereClause.between(
-              indexName: r'name',
-              lower: [name],
-              includeLower: false,
-              upper: [],
-            ))
-            .addWhereClause(IndexWhereClause.between(
-              indexName: r'name',
-              lower: [],
-              upper: [name],
-              includeUpper: false,
-            ));
-      }
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'balance',
+        value: value,
+        epsilon: epsilon,
+      ));
     });
   }
-}
 
-extension WalletQueryFilter on QueryBuilder<Wallet, Wallet, QFilterCondition> {
+  QueryBuilder<Wallet, Wallet, QAfterFilterCondition> balanceLessThan(
+    double value, {
+    bool include = false,
+    double epsilon = Query.epsilon,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'balance',
+        value: value,
+        epsilon: epsilon,
+      ));
+    });
+  }
+
+  QueryBuilder<Wallet, Wallet, QAfterFilterCondition> balanceBetween(
+    double lower,
+    double upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    double epsilon = Query.epsilon,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'balance',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        epsilon: epsilon,
+      ));
+    });
+  }
+
   QueryBuilder<Wallet, Wallet, QAfterFilterCondition> iconNameEqualTo(
     String value, {
     bool caseSensitive = true,
@@ -679,6 +639,18 @@ extension WalletQueryObject on QueryBuilder<Wallet, Wallet, QFilterCondition> {}
 extension WalletQueryLinks on QueryBuilder<Wallet, Wallet, QFilterCondition> {}
 
 extension WalletQuerySortBy on QueryBuilder<Wallet, Wallet, QSortBy> {
+  QueryBuilder<Wallet, Wallet, QAfterSortBy> sortByBalance() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'balance', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Wallet, Wallet, QAfterSortBy> sortByBalanceDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'balance', Sort.desc);
+    });
+  }
+
   QueryBuilder<Wallet, Wallet, QAfterSortBy> sortByIconName() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'iconName', Sort.asc);
@@ -717,6 +689,18 @@ extension WalletQuerySortBy on QueryBuilder<Wallet, Wallet, QSortBy> {
 }
 
 extension WalletQuerySortThenBy on QueryBuilder<Wallet, Wallet, QSortThenBy> {
+  QueryBuilder<Wallet, Wallet, QAfterSortBy> thenByBalance() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'balance', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Wallet, Wallet, QAfterSortBy> thenByBalanceDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'balance', Sort.desc);
+    });
+  }
+
   QueryBuilder<Wallet, Wallet, QAfterSortBy> thenByIconName() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'iconName', Sort.asc);
@@ -767,6 +751,12 @@ extension WalletQuerySortThenBy on QueryBuilder<Wallet, Wallet, QSortThenBy> {
 }
 
 extension WalletQueryWhereDistinct on QueryBuilder<Wallet, Wallet, QDistinct> {
+  QueryBuilder<Wallet, Wallet, QDistinct> distinctByBalance() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'balance');
+    });
+  }
+
   QueryBuilder<Wallet, Wallet, QDistinct> distinctByIconName(
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
@@ -792,6 +782,12 @@ extension WalletQueryProperty on QueryBuilder<Wallet, Wallet, QQueryProperty> {
   QueryBuilder<Wallet, int, QQueryOperations> idProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'id');
+    });
+  }
+
+  QueryBuilder<Wallet, double, QQueryOperations> balanceProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'balance');
     });
   }
 

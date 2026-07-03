@@ -6,11 +6,8 @@ part 'wallet.g.dart';
 class Wallet {
   Id id = Isar.autoIncrement;
 
-  @Index(unique: true)
   late String name;
-
   late String iconName;
-
-  // Saldo awal saat dompet dibuat (opsional)
   double initialBalance = 0.0;
+  double balance = 0.0;
 }

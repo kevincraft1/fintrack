@@ -5,6 +5,7 @@ import 'package:fl_chart/fl_chart.dart';
 import 'package:intl/intl.dart';
 import 'statistics_controller.dart';
 import '../../core/theme/app_colors.dart';
+import '../../core/widgets/version_footer.dart';
 
 class StatisticsScreen extends StatelessWidget {
   final StatisticsController c = Get.put(StatisticsController());
@@ -160,7 +161,8 @@ class StatisticsScreen extends StatelessWidget {
                   ],
                 ),
               ),
-              SizedBox(height: 40.h),
+              SizedBox(height: 24.h),
+              VersionFooter(),
             ],
           ),
         );

@@ -9,6 +9,7 @@ import '../../core/theme/app_colors.dart';
 import '../../core/utils/icon_mapper.dart';
 import '../../core/utils/pdf_helper.dart';
 import '../../core/utils/csv_helper.dart';
+import '../../core/widgets/version_footer.dart';
 
 class HistoryScreen extends StatelessWidget {
   final HistoryController c = Get.put(HistoryController());
@@ -223,6 +224,7 @@ class HistoryScreen extends StatelessWidget {
               );
             }),
           ),
+          VersionFooter(),
         ],
       ),
     );

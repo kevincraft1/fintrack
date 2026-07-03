@@ -6,6 +6,7 @@ import 'profile_controller.dart';
 import 'widgets/identity_card.dart';
 import 'widgets/preference_menu.dart';
 import '../../core/theme/app_colors.dart';
+import '../../core/widgets/version_footer.dart';
 
 class ProfileScreen extends StatelessWidget {
   final ProfileController c = Get.put(ProfileController());
@@ -45,7 +46,8 @@ class ProfileScreen extends StatelessWidget {
                     .animate()
                     .fadeIn(delay: 150.ms)
                     .slideY(begin: 0.1, end: 0),
-                SizedBox(height: 40.h),
+                SizedBox(height: 24.h),
+                VersionFooter(),
               ],
             ),
           ),

@@ -9,6 +9,7 @@ import 'widgets/wallet_list_section.dart';
 import 'widgets/recent_transactions.dart';
 import '../profile/profile_screen.dart';
 import '../../core/theme/app_colors.dart';
+import '../../core/widgets/version_footer.dart';
 
 class HomeScreen extends StatelessWidget {
   final HomeController c = Get.put(HomeController());
@@ -85,7 +86,8 @@ class HomeScreen extends StatelessWidget {
                       .animate()
                       .fadeIn(delay: 300.ms)
                       .slideY(begin: 0.1, end: 0),
-                  SizedBox(height: 100.h),
+                  SizedBox(height: 24.h),
+                  VersionFooter(),
                 ],
               ),
             ),
