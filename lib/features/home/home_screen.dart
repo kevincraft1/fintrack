@@ -34,10 +34,9 @@ class HomeScreen extends StatelessWidget {
               pinned: true,
               centerTitle: false,
               titleSpacing: 24.w,
-              toolbarHeight: 70.h,
+              toolbarHeight: 56.h,
               title: Row(
                 children: [
-                  // INTEGRASI LOGO KECIL DI BERANDA (SAFETY CONSTRAINT)
                   Image.asset(
                     'assets/images/fintrack-pro.png',
                     width: 32.w,

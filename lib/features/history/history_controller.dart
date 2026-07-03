@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:isar/isar.dart';
 import '../../data/database_service.dart';
 import '../../data/models/transaction.dart';
 import '../../data/models/category.dart';
+import '../../data/models/wallet.dart';
 import '../../core/theme/app_colors.dart';
-import 'package:isar/isar.dart';
+import '../home/home_controller.dart';
 
 class HistoryController extends GetxController {
   var transactions = <Transaction>[].obs;
@@ -50,6 +52,8 @@ class HistoryController extends GetxController {
 
     for (var txn in data) {
       await txn.category.load();
+      await txn.wallet.load();
+      await txn.toWallet.load();
     }
 
     if (searchQuery.value.isEmpty) {
@@ -81,38 +85,109 @@ class HistoryController extends GetxController {
   }
 
   Future<void> deleteTransaction(int id) async {
-    await DatabaseService.isar.writeTxn(() async {
-      await DatabaseService.isar.transactions.delete(id);
-    });
-    fetchTransactions();
+    final isar = DatabaseService.isar;
+    final txn = await isar.transactions.get(id);
 
-    Get.snackbar(
-      'Terhapus',
-      'Transaksi berhasil dihapus dari catatan.',
-      snackPosition: SnackPosition.BOTTOM,
-      backgroundColor: AppColors.error,
-      colorText: AppColors.textPrimary,
-    );
+    if (txn != null) {
+      await txn.category.load();
+      await txn.wallet.load();
+      await txn.toWallet.load();
+
+      final type = txn.category.value?.type;
+      final amount = txn.amount;
+      final wallet = txn.wallet.value;
+
+      await isar.writeTxn(() async {
+        if (wallet != null) {
+          if (type == 'income') {
+            wallet.balance -= amount;
+          } else if (type == 'expense') {
+            wallet.balance += amount;
+          } else if (type == 'transfer') {
+            wallet.balance += amount;
+            final toWallet = txn.toWallet.value;
+            if (toWallet != null) {
+              toWallet.balance -= amount;
+              await isar.wallets.put(toWallet);
+            }
+          }
+          await isar.wallets.put(wallet);
+        }
+        await isar.transactions.delete(id);
+      });
+
+      if (Get.isRegistered<HomeController>()) {
+        Get.find<HomeController>().loadHomeData();
+      }
+
+      fetchTransactions();
+
+      Get.snackbar(
+        'Terhapus',
+        'Transaksi dihapus dan saldo dompet telah dikembalikan.',
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: AppColors.error,
+        colorText: AppColors.textPrimary,
+      );
+    }
   }
 
   Future<void> updateTransaction(
       int id, double newAmount, Category newCategory) async {
-    final txn = await DatabaseService.isar.transactions.get(id);
-    if (txn != null) {
-      txn.amount = newAmount;
-      txn.category.value = newCategory;
+    final isar = DatabaseService.isar;
+    final txn = await isar.transactions.get(id);
 
-      await DatabaseService.isar.writeTxn(() async {
-        await DatabaseService.isar.transactions.put(txn);
+    if (txn != null) {
+      await txn.category.load();
+      await txn.wallet.load();
+
+      final oldAmount = txn.amount;
+      final oldType = txn.category.value?.type;
+      final newType = newCategory.type;
+      final wallet = txn.wallet.value;
+
+      if (oldType == 'transfer' || newType == 'transfer') {
+        Get.snackbar(
+          'Ditolak',
+          'Edit transaksi transfer belum didukung. Harap hapus dan buat ulang.',
+          backgroundColor: Colors.orange,
+          colorText: Colors.white,
+        );
+        return;
+      }
+
+      await isar.writeTxn(() async {
+        if (wallet != null) {
+          if (oldType == 'income') {
+            wallet.balance -= oldAmount;
+          } else if (oldType == 'expense') {
+            wallet.balance += oldAmount;
+          }
+
+          if (newType == 'income') {
+            wallet.balance += newAmount;
+          } else if (newType == 'expense') {
+            wallet.balance -= newAmount;
+          }
+          await isar.wallets.put(wallet);
+        }
+
+        txn.amount = newAmount;
+        txn.category.value = newCategory;
+        await isar.transactions.put(txn);
         await txn.category.save();
       });
+
+      if (Get.isRegistered<HomeController>()) {
+        Get.find<HomeController>().loadHomeData();
+      }
 
       fetchTransactions();
       Get.back();
 
       Get.snackbar(
         'Diperbarui',
-        'Data transaksi berhasil diubah.',
+        'Data transaksi dan kalkulasi saldo berhasil diubah.',
         snackPosition: SnackPosition.TOP,
         backgroundColor: AppColors.primary,
         colorText: AppColors.textPrimary,

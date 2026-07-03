@@ -35,51 +35,30 @@ class HomeController extends GetxController {
     Map<int, double> wBalances = {};
 
     for (var w in allWallets) {
-      wBalances[w.id] = w.initialBalance;
-      balance += w.initialBalance;
+      wBalances[w.id] = w.balance;
+      balance += w.balance;
     }
 
-    for (var txn in allTxn) {
+    final monthlyTxn = allTxn.where((t) =>
+        t.date.isAfter(startOfMonth) || t.date.isAtSameMomentAs(startOfMonth));
+
+    for (var txn in monthlyTxn) {
+      await txn.category.load();
+      final type = txn.category.value?.type;
+
+      if (type == 'income') {
+        income += txn.amount;
+      } else if (type == 'expense') {
+        expense += txn.amount;
+      }
+    }
+
+    // Melakukan load IsarLink mutlak khusus untuk UI Recent Transactions
+    final recent = allTxn.take(5).toList();
+    for (var txn in recent) {
       await txn.category.load();
       await txn.wallet.load();
-
-      final type = txn.category.value?.type;
-      final amount = txn.amount;
-      final walletId = txn.wallet.value?.id;
-
-      // Logika Kalkulasi Saldo Dompet
-      if (type == 'income') {
-        balance += amount;
-        if (walletId != null && wBalances.containsKey(walletId)) {
-          wBalances[walletId] = wBalances[walletId]! + amount;
-        }
-      } else if (type == 'expense') {
-        balance -= amount;
-        if (walletId != null && wBalances.containsKey(walletId)) {
-          wBalances[walletId] = wBalances[walletId]! - amount;
-        }
-      } else if (type == 'transfer') {
-        await txn.toWallet.load();
-        final toWalletId = txn.toWallet.value?.id;
-
-        // Transfer mengurangi dompet asal dan menambah dompet tujuan
-        if (walletId != null && wBalances.containsKey(walletId)) {
-          wBalances[walletId] = wBalances[walletId]! - amount;
-        }
-        if (toWalletId != null && wBalances.containsKey(toWalletId)) {
-          wBalances[toWalletId] = wBalances[toWalletId]! + amount;
-        }
-      }
-
-      // Logika Kalkulasi Pemasukan/Pengeluaran Bulanan (Transfer diabaikan)
-      if (txn.date.isAfter(startOfMonth) ||
-          txn.date.isAtSameMomentAs(startOfMonth)) {
-        if (type == 'income') {
-          income += amount;
-        } else if (type == 'expense') {
-          expense += amount;
-        }
-      }
+      await txn.toWallet.load();
     }
 
     wallets.assignAll(allWallets);
@@ -87,6 +66,6 @@ class HomeController extends GetxController {
     totalBalance.value = balance;
     totalIncome.value = income;
     totalExpense.value = expense;
-    recentTransactions.assignAll(allTxn.take(5).toList());
+    recentTransactions.assignAll(recent);
   }
 }

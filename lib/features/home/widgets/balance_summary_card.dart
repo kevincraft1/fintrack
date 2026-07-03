@@ -14,21 +14,7 @@ class BalanceSummaryCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final formatCurrency =
         NumberFormat.currency(locale: 'id', symbol: 'Rp ', decimalDigits: 0);
-    final months = [
-      'Januari',
-      'Februari',
-      'Maret',
-      'April',
-      'Mei',
-      'Juni',
-      'Juli',
-      'Agustus',
-      'September',
-      'Oktober',
-      'November',
-      'Desember'
-    ];
-    final currentMonth = months[DateTime.now().month - 1];
+    final currentMonth = DateFormat.MMMM('id').format(DateTime.now());
 
     return Container(
       margin: EdgeInsets.symmetric(horizontal: 24.w),

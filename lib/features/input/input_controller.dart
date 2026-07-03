@@ -6,12 +6,13 @@ import '../../data/database_service.dart';
 import '../../data/models/transaction.dart';
 import '../../data/models/category.dart';
 import '../../data/models/wallet.dart';
+import '../home/home_controller.dart';
 
 class InputController extends GetxController {
   var amount = '0'.obs;
   var noteController = TextEditingController();
 
-  var selectedType = 'expense'.obs; // 'income', 'expense', 'transfer'
+  var selectedType = 'expense'.obs;
 
   var selectedCategory = Rxn<Category>();
   var selectedWallet = Rxn<Wallet>();
@@ -26,7 +27,6 @@ class InputController extends GetxController {
     loadInitialData();
   }
 
-  // Menyesuaikan dengan kebutuhan UI AmountDisplay
   String get formattedAmount {
     if (amount.value == '0' || amount.value.isEmpty) return '0';
     final number = int.tryParse(amount.value) ?? 0;
@@ -72,7 +72,6 @@ class InputController extends GetxController {
     loadCategories();
   }
 
-  // Menyesuaikan dengan penamaan NumpadGrid
   void addDigit(String num) {
     if (amount.value == '0') {
       amount.value = num;
@@ -81,7 +80,6 @@ class InputController extends GetxController {
     }
   }
 
-  // Menyesuaikan dengan penamaan NumpadGrid
   void removeDigit() {
     if (amount.value.length > 1) {
       amount.value = amount.value.substring(0, amount.value.length - 1);
@@ -130,55 +128,64 @@ class InputController extends GetxController {
 
     final isar = DatabaseService.isar;
 
-    await isar.writeTxn(() async {
-      if (selectedType.value == 'transfer') {
-        txn.wallet.value = selectedWallet.value;
-        txn.toWallet.value = selectedToWallet.value;
+    try {
+      await isar.writeTxn(() async {
+        if (selectedType.value == 'transfer') {
+          txn.wallet.value = selectedWallet.value;
+          txn.toWallet.value = selectedToWallet.value;
 
-        var transferCat = await isar.categorys
-            .filter()
-            .nameEqualTo('Transfer Internal')
-            .findFirst();
-        if (transferCat == null) {
-          transferCat = Category()
-            ..name = 'Transfer Internal'
-            ..iconName = 'swap_horiz'
-            ..type = 'transfer'
-            ..colorHex = '#3B82F6';
-          await isar.categorys.put(transferCat);
-        }
-        txn.category.value = transferCat;
+          var transferCat = await isar.categorys
+              .filter()
+              .nameEqualTo('Transfer Internal')
+              .findFirst();
+          if (transferCat == null) {
+            transferCat = Category()
+              ..name = 'Transfer Internal'
+              ..iconName = 'swap_horiz'
+              ..type = 'transfer'
+              ..colorHex = '#3B82F6';
+            await isar.categorys.put(transferCat);
+          }
+          txn.category.value = transferCat;
 
-        final fromWallet = selectedWallet.value!;
-        fromWallet.balance -= parsedAmount;
-        await isar.wallets.put(fromWallet);
+          final fromWallet = selectedWallet.value!;
+          fromWallet.balance -= parsedAmount;
+          await isar.wallets.put(fromWallet);
 
-        final toWallet = selectedToWallet.value!;
-        toWallet.balance += parsedAmount;
-        await isar.wallets.put(toWallet);
-      } else {
-        txn.category.value = selectedCategory.value;
-        txn.wallet.value = selectedWallet.value;
-
-        final wallet = selectedWallet.value!;
-        if (selectedType.value == 'income') {
-          wallet.balance += parsedAmount;
+          final toWallet = selectedToWallet.value!;
+          toWallet.balance += parsedAmount;
+          await isar.wallets.put(toWallet);
         } else {
-          wallet.balance -= parsedAmount;
+          txn.category.value = selectedCategory.value;
+          txn.wallet.value = selectedWallet.value;
+
+          final wallet = selectedWallet.value!;
+          if (selectedType.value == 'income') {
+            wallet.balance += parsedAmount;
+          } else {
+            wallet.balance -= parsedAmount;
+          }
+          await isar.wallets.put(wallet);
         }
-        await isar.wallets.put(wallet);
+
+        await isar.transactions.put(txn);
+        await txn.category.save();
+        await txn.wallet.save();
+        if (selectedType.value == 'transfer') {
+          await txn.toWallet.save();
+        }
+      });
+
+      if (Get.isRegistered<HomeController>()) {
+        Get.find<HomeController>().loadHomeData();
       }
 
-      await isar.transactions.put(txn);
-      await txn.category.save();
-      await txn.wallet.save();
-      if (selectedType.value == 'transfer') {
-        await txn.toWallet.save();
-      }
-    });
-
-    Get.back(result: true);
-    Get.snackbar('Sukses', 'Transaksi berhasil dicatat',
-        backgroundColor: Colors.green, colorText: Colors.white);
+      Get.back(result: true);
+      Get.snackbar('Sukses', 'Transaksi berhasil dicatat',
+          backgroundColor: Colors.green, colorText: Colors.white);
+    } catch (e) {
+      Get.snackbar('Sistem Error', 'Terjadi kesalahan saat menyimpan data',
+          backgroundColor: Colors.red, colorText: Colors.white);
+    }
   }
 }

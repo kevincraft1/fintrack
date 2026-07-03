@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:intl/date_symbol_data_local.dart';
 import 'data/database_service.dart';
 import 'features/security/lock_screen.dart';
 import 'core/theme/app_colors.dart';
@@ -9,13 +10,14 @@ import 'core/theme/app_colors.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // Mengunci orientasi aplikasi mutlak di mode Portrait
   await SystemChrome.setPreferredOrientations([
     DeviceOrientation.portraitUp,
     DeviceOrientation.portraitDown,
   ]);
 
+  await initializeDateFormatting('id', null);
   await DatabaseService.init();
+
   runApp(const MyApp());
 }
 
