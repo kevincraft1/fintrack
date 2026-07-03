@@ -43,27 +43,40 @@ class HomeController extends GetxController {
       await txn.category.load();
       await txn.wallet.load();
 
-      final isIncome = txn.category.value?.type == 'income';
+      final type = txn.category.value?.type;
       final amount = txn.amount;
       final walletId = txn.wallet.value?.id;
 
-      if (isIncome) {
+      // Logika Kalkulasi Saldo Dompet
+      if (type == 'income') {
         balance += amount;
         if (walletId != null && wBalances.containsKey(walletId)) {
           wBalances[walletId] = wBalances[walletId]! + amount;
         }
-      } else {
+      } else if (type == 'expense') {
         balance -= amount;
         if (walletId != null && wBalances.containsKey(walletId)) {
           wBalances[walletId] = wBalances[walletId]! - amount;
         }
+      } else if (type == 'transfer') {
+        await txn.toWallet.load();
+        final toWalletId = txn.toWallet.value?.id;
+
+        // Transfer mengurangi dompet asal dan menambah dompet tujuan
+        if (walletId != null && wBalances.containsKey(walletId)) {
+          wBalances[walletId] = wBalances[walletId]! - amount;
+        }
+        if (toWalletId != null && wBalances.containsKey(toWalletId)) {
+          wBalances[toWalletId] = wBalances[toWalletId]! + amount;
+        }
       }
 
+      // Logika Kalkulasi Pemasukan/Pengeluaran Bulanan (Transfer diabaikan)
       if (txn.date.isAfter(startOfMonth) ||
           txn.date.isAtSameMomentAs(startOfMonth)) {
-        if (isIncome) {
+        if (type == 'income') {
           income += amount;
-        } else {
+        } else if (type == 'expense') {
           expense += amount;
         }
       }

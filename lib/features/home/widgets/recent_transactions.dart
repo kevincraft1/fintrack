@@ -38,6 +38,7 @@ class RecentTransactions extends StatelessWidget {
           }
           final formatCurrency = NumberFormat.currency(
               locale: 'id', symbol: 'Rp ', decimalDigits: 0);
+
           return ListView.separated(
             shrinkWrap: true,
             physics: const NeverScrollableScrollPhysics(),
@@ -48,7 +49,20 @@ class RecentTransactions extends StatelessWidget {
               final txn = c.recentTransactions[index];
               final cat = txn.category.value;
               final wallet = txn.wallet.value;
+
               final isIncome = cat?.type == 'income';
+              final isTransfer = cat?.type == 'transfer';
+
+              final operator = isTransfer ? '' : (isIncome ? '+' : '-');
+              final amountColor = isTransfer
+                  ? const Color(0xFF3B82F6)
+                  : (isIncome ? AppColors.primary : AppColors.error);
+
+              String subtitleText = wallet?.name ?? '-';
+              if (isTransfer) {
+                final toWallet = txn.toWallet.value;
+                subtitleText += ' ➔ ${toWallet?.name ?? '-'}';
+              }
 
               return Container(
                 padding: EdgeInsets.all(16.w),
@@ -64,14 +78,13 @@ class RecentTransactions extends StatelessWidget {
                           color: AppColors.background, shape: BoxShape.circle),
                       child: Icon(
                           IconMapper.getIcon(cat?.iconName ?? 'category'),
-                          color: isIncome ? AppColors.primary : AppColors.error,
+                          color: amountColor,
                           size: 20.sp),
                     ),
                     SizedBox(width: 16.w),
                     Expanded(
                       child: Column(
-                        mainAxisSize:
-                            MainAxisSize.min, // PERBAIKAN: Safety constraint
+                        mainAxisSize: MainAxisSize.min, // Safety constraint
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(cat?.name ?? 'Lainnya',
@@ -80,7 +93,7 @@ class RecentTransactions extends StatelessWidget {
                                   fontSize: 14.sp,
                                   fontWeight: FontWeight.bold)),
                           SizedBox(height: 4.h),
-                          Text(wallet?.name ?? '-',
+                          Text(subtitleText,
                               style: TextStyle(
                                   color: AppColors.textSecondary,
                                   fontSize: 12.sp)),
@@ -88,9 +101,9 @@ class RecentTransactions extends StatelessWidget {
                       ),
                     ),
                     Text(
-                      '${isIncome ? '+' : '-'} ${formatCurrency.format(txn.amount)}',
+                      '$operator ${formatCurrency.format(txn.amount)}',
                       style: TextStyle(
-                          color: isIncome ? AppColors.primary : AppColors.error,
+                          color: amountColor,
                           fontSize: 14.sp,
                           fontWeight: FontWeight.bold),
                     ),

@@ -43,55 +43,41 @@ class HistoryScreen extends StatelessWidget {
             onSelected: (value) {
               if (c.transactions.isEmpty) {
                 Get.snackbar(
-                  'Data Kosong',
-                  'Tidak ada transaksi untuk diekspor.',
-                  snackPosition: SnackPosition.BOTTOM,
-                  backgroundColor: AppColors.error,
-                  colorText: Colors.white,
-                );
+                    'Data Kosong', 'Tidak ada transaksi untuk diekspor.',
+                    snackPosition: SnackPosition.BOTTOM,
+                    backgroundColor: AppColors.error,
+                    colorText: Colors.white);
                 return;
               }
               if (value == 'pdf') {
-                PdfHelper.generateAndPrintReport(
-                  c.transactions.toList(),
-                  c.selectedMonth.value,
-                  c.selectedYear.value,
-                );
+                PdfHelper.generateAndPrintReport(c.transactions.toList(),
+                    c.selectedMonth.value, c.selectedYear.value);
               } else if (value == 'csv') {
-                CsvHelper.generateAndShareCsv(
-                  c.transactions.toList(),
-                  c.selectedMonth.value,
-                  c.selectedYear.value,
-                );
+                CsvHelper.generateAndShareCsv(c.transactions.toList(),
+                    c.selectedMonth.value, c.selectedYear.value);
               }
             },
             itemBuilder: (context) => [
               PopupMenuItem(
-                value: 'pdf',
-                child: Row(
-                  children: [
+                  value: 'pdf',
+                  child: Row(children: [
                     Icon(Icons.picture_as_pdf,
                         color: AppColors.error, size: 20.sp),
                     SizedBox(width: 12.w),
                     Text('Cetak Laporan PDF',
                         style: TextStyle(
-                            color: AppColors.textPrimary, fontSize: 14.sp)),
-                  ],
-                ),
-              ),
+                            color: AppColors.textPrimary, fontSize: 14.sp))
+                  ])),
               PopupMenuItem(
-                value: 'csv',
-                child: Row(
-                  children: [
+                  value: 'csv',
+                  child: Row(children: [
                     Icon(Icons.table_chart,
                         color: Colors.greenAccent, size: 20.sp),
                     SizedBox(width: 12.w),
                     Text('Ekspor Data CSV',
                         style: TextStyle(
-                            color: AppColors.textPrimary, fontSize: 14.sp)),
-                  ],
-                ),
-              ),
+                            color: AppColors.textPrimary, fontSize: 14.sp))
+                  ])),
             ],
           ),
         ],
@@ -118,12 +104,11 @@ class HistoryScreen extends StatelessWidget {
                           color: AppColors.textSecondary.withOpacity(0.5)),
                       SizedBox(height: 16.h),
                       Text(
-                        c.searchQuery.value.isEmpty
-                            ? 'Belum ada transaksi.'
-                            : 'Data tidak ditemukan.',
-                        style: TextStyle(
-                            color: AppColors.textSecondary, fontSize: 16.sp),
-                      ),
+                          c.searchQuery.value.isEmpty
+                              ? 'Belum ada transaksi.'
+                              : 'Data tidak ditemukan.',
+                          style: TextStyle(
+                              color: AppColors.textSecondary, fontSize: 16.sp)),
                     ],
                   ).animate().fadeIn(),
                 );
@@ -142,22 +127,35 @@ class HistoryScreen extends StatelessWidget {
                   final iconData = category != null
                       ? IconMapper.getIcon(category.iconName)
                       : Icons.category;
+
                   final formatCurrency = NumberFormat.currency(
                       locale: 'id', symbol: 'Rp ', decimalDigits: 0);
                   final formatDate =
                       DateFormat('dd MMM yyyy • HH:mm').format(txn.date);
 
                   final isIncome = category?.type == 'income';
-                  final operator = isIncome ? '+' : '-';
-                  final amountColor =
-                      isIncome ? AppColors.primary : AppColors.error;
+                  final isTransfer = category?.type == 'transfer';
+
+                  final operator = isTransfer ? '' : (isIncome ? '+' : '-');
+                  final amountColor = isTransfer
+                      ? const Color(0xFF3B82F6)
+                      : (isIncome ? AppColors.primary : AppColors.error);
                   final hasNote = txn.note != null && txn.note!.isNotEmpty;
+
+                  // Susun rincian dompet untuk Transfer
+                  String subtitleText = formatDate;
+                  if (isTransfer) {
+                    final toWallet = txn.toWallet.value;
+                    subtitleText +=
+                        ' • ${wallet?.name ?? '-'} ➔ ${toWallet?.name ?? '-'}';
+                  } else {
+                    subtitleText += ' • ${wallet?.name ?? '-'}';
+                  }
 
                   return InkWell(
                     onTap: () => Get.to(
-                      () => EditTransactionScreen(transaction: txn),
-                      transition: Transition.rightToLeftWithFade,
-                    ),
+                        () => EditTransactionScreen(transaction: txn),
+                        transition: Transition.rightToLeftWithFade),
                     onLongPress: () => _confirmDelete(context, txn.id),
                     borderRadius: BorderRadius.circular(16.r),
                     child: Ink(
@@ -187,19 +185,17 @@ class HistoryScreen extends StatelessWidget {
                                         fontWeight: FontWeight.bold)),
                                 if (hasNote) ...[
                                   SizedBox(height: 2.h),
-                                  Text(
-                                    txn.note!,
-                                    style: TextStyle(
-                                        color: AppColors.textSecondary
-                                            .withOpacity(0.8),
-                                        fontSize: 12.sp,
-                                        fontStyle: FontStyle.italic),
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
-                                  ),
+                                  Text(txn.note!,
+                                      style: TextStyle(
+                                          color: AppColors.textSecondary
+                                              .withOpacity(0.8),
+                                          fontSize: 12.sp,
+                                          fontStyle: FontStyle.italic),
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis),
                                 ],
                                 SizedBox(height: 4.h),
-                                Text('$formatDate • ${wallet?.name ?? '-'}',
+                                Text(subtitleText,
                                     style: TextStyle(
                                         color: AppColors.textSecondary,
                                         fontSize: 11.sp)),
@@ -245,7 +241,6 @@ class HistoryScreen extends StatelessWidget {
       'November',
       'Desember'
     ];
-
     return Padding(
       padding: EdgeInsets.symmetric(vertical: 8.h),
       child: Row(

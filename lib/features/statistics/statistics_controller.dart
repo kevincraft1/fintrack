@@ -46,7 +46,8 @@ class StatisticsController extends GetxController {
       if (cat != null) {
         if (cat.type == 'income') {
           income += txn.amount;
-        } else {
+        } else if (cat.type == 'expense') {
+          // HANYA hitung yang bertipe 'expense', abaikan 'transfer'
           expense += txn.amount;
           expensesMap[cat.name] = (expensesMap[cat.name] ?? 0) + txn.amount;
 
