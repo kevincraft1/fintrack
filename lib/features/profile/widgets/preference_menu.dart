@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:url_launcher/url_launcher.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 import '../../../core/theme/app_colors.dart';
-import '../../../core/widgets/version_footer.dart';
 import '../../security/security_controller.dart';
 import '../../backup/backup_controller.dart';
 import '../../category/category_management_screen.dart';
@@ -12,49 +11,60 @@ import '../../wallet/wallet_management_screen.dart';
 class PreferenceMenu extends StatelessWidget {
   const PreferenceMenu({super.key});
 
-  Future<void> _launchPrivacyPolicy() async {
-    final Uri url = Uri.parse('https://policies.google.com/privacy');
-    if (!await launchUrl(url, mode: LaunchMode.externalApplication)) {
-      Get.snackbar('Error', 'Tidak dapat membuka browser.',
-          backgroundColor: AppColors.error, colorText: Colors.white);
-    }
-  }
-
-  void _showAboutApp(BuildContext context) {
-    // Mengambil versi secara dinamis dari AppVersionController
-    final versionC = Get.find<AppVersionController>();
-
-    showAboutDialog(
+  Future<void> _showPrivacyPolicy(BuildContext context) async {
+    showDialog(
       context: context,
-      applicationName: 'FinTrack Pro',
-      applicationVersion: '${versionC.version.value} (Production Release)',
-      applicationIcon: ClipRRect(
-        borderRadius: BorderRadius.circular(12.r),
-        child: Image.asset('assets/images/fintrack-pro.png',
-            width: 48.w, height: 48.w, fit: BoxFit.contain),
+      builder: (context) => AlertDialog(
+        backgroundColor: AppColors.card,
+        title: Text('Kebijakan Privasi (100% Offline)',
+            style: TextStyle(
+                color: AppColors.textPrimary,
+                fontSize: 16.sp,
+                fontWeight: FontWeight.bold)),
+        content: SingleChildScrollView(
+          child: Text(
+            'FinTrack Pro Enterprise Edition dirancang dengan arsitektur "Zero Data Collection".\n\n'
+            'Seluruh data finansial, catatan, dan metrik Anda disimpan HANYA secara lokal di dalam perangkat Anda. '
+            'Kami tidak memiliki akses, tidak mengumpulkan, dan tidak mentransmisikan data privasi Anda ke server eksternal mana pun.\n\n'
+            'Anda bertanggung jawab penuh atas keamanan perangkat Anda sendiri (termasuk fitur pencadangan lokal dan keamanan biometrik).',
+            style: TextStyle(
+                color: AppColors.textSecondary, fontSize: 13.sp, height: 1.5),
+            textAlign: TextAlign.justify,
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Get.back(),
+            // INJEKSI CONST MUTLAK UNTUK OPTIMASI MEMORI
+            child: const Text(
+              'SAYA MENGERTI',
+              style: TextStyle(
+                  color: AppColors.primary, fontWeight: FontWeight.bold),
+            ),
+          ),
+        ],
       ),
-      applicationLegalese:
-          '© 2026 FinTrack Pro.\nDikembangkan secara eksklusif untuk efisiensi finansial mutlak.',
     );
   }
 
-  void _showLicenses(BuildContext context) {
-    final versionC = Get.find<AppVersionController>();
+  Future<void> _showAboutApp(BuildContext context) async {
+    final PackageInfo packageInfo = await PackageInfo.fromPlatform();
+    final String version = packageInfo.version;
 
-    showLicensePage(
-      context: context,
-      applicationName: 'FinTrack Pro',
-      applicationVersion: versionC.version.value,
-      applicationIcon: Padding(
-        padding: EdgeInsets.all(8.w),
-        child: ClipRRect(
+    if (context.mounted) {
+      showAboutDialog(
+        context: context,
+        applicationName: 'FinTrack Pro',
+        applicationVersion: 'v$version (Enterprise Edition)',
+        applicationIcon: ClipRRect(
           borderRadius: BorderRadius.circular(12.r),
           child: Image.asset('assets/images/fintrack-pro.png',
-              width: 64.w, height: 64.w, fit: BoxFit.contain),
+              width: 48.w, height: 48.w, fit: BoxFit.contain),
         ),
-      ),
-      applicationLegalese: '© 2026 FinTrack Pro. Hak Cipta Dilindungi.',
-    );
+        applicationLegalese:
+            '© 2026 Hak Cipta Dilindungi Undang-Undang.\nPerangkat Lunak Proprietary tertutup.\nDikembangkan eksklusif untuk keamanan finansial mutlak.',
+      );
+    }
   }
 
   @override
@@ -125,22 +135,14 @@ class PreferenceMenu extends StatelessWidget {
                   Icons.shield_outlined,
                   'Kebijakan Privasi',
                   'Syarat & ketentuan data',
-                  onTap: _launchPrivacyPolicy,
-                ),
-                Divider(
-                    color: AppColors.textSecondary.withOpacity(0.1), height: 1),
-                _buildMenuItem(
-                  Icons.description_outlined,
-                  'Lisensi Open Source',
-                  'Legalitas pustaka pihak ketiga',
-                  onTap: () => _showLicenses(context),
+                  onTap: () => _showPrivacyPolicy(context),
                 ),
                 Divider(
                     color: AppColors.textSecondary.withOpacity(0.1), height: 1),
                 _buildMenuItem(
                   Icons.info_outline,
                   'Tentang Aplikasi',
-                  'Informasi versi FinTrack Pro',
+                  'Informasi lisensi & versi',
                   onTap: () => _showAboutApp(context),
                 ),
               ],

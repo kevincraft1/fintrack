@@ -28,10 +28,13 @@ class StatisticsController extends GetxController {
   Future<void> loadStatisticData() async {
     final now = DateTime.now();
     final startOfMonth = DateTime(now.year, now.month, 1);
+    final endOfMonth = DateTime(now.year, now.month + 1, 1)
+        .subtract(const Duration(microseconds: 1));
 
+    // INJEKSI ZERO ERROR: Penggunaan dateBetween untuk boundary date yang mutlak
     final transactions = await DatabaseService.isar.transactions
         .filter()
-        .dateGreaterThan(startOfMonth)
+        .dateBetween(startOfMonth, endOfMonth)
         .findAll();
 
     double income = 0.0;
@@ -47,7 +50,6 @@ class StatisticsController extends GetxController {
         if (cat.type == 'income') {
           income += txn.amount;
         } else if (cat.type == 'expense') {
-          // HANYA hitung yang bertipe 'expense', abaikan 'transfer'
           expense += txn.amount;
           expensesMap[cat.name] = (expensesMap[cat.name] ?? 0) + txn.amount;
 
@@ -63,7 +65,6 @@ class StatisticsController extends GetxController {
     totalIncome.value = income;
     totalExpense.value = expense;
 
-    // Sort expenses by amount descending
     final sortedExpenses = Map.fromEntries(expensesMap.entries.toList()
       ..sort((e1, e2) => e2.value.compareTo(e1.value)));
     expenseByCategory.assignAll(sortedExpenses);
