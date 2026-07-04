@@ -21,17 +21,11 @@ class HomeController extends GetxController {
   Future<void> loadHomeData() async {
     final now = DateTime.now();
     final startOfMonth = DateTime(now.year, now.month, 1);
+    final isar = DatabaseService.isar;
 
-    final allTxn =
-        await DatabaseService.isar.transactions.where().anyId().findAll();
-    allTxn.sort((a, b) => b.date.compareTo(a.date));
-
-    final allWallets =
-        await DatabaseService.isar.wallets.where().anyId().findAll();
+    final allWallets = await isar.wallets.where().anyId().findAll();
 
     double balance = 0.0;
-    double income = 0.0;
-    double expense = 0.0;
     Map<int, double> wBalances = {};
 
     for (var w in allWallets) {
@@ -39,8 +33,13 @@ class HomeController extends GetxController {
       balance += w.balance;
     }
 
-    final monthlyTxn = allTxn.where((t) =>
-        t.date.isAfter(startOfMonth) || t.date.isAtSameMomentAs(startOfMonth));
+    final monthlyTxn = await isar.transactions
+        .filter()
+        .dateGreaterThan(startOfMonth.subtract(const Duration(seconds: 1)))
+        .findAll();
+
+    double income = 0.0;
+    double expense = 0.0;
 
     for (var txn in monthlyTxn) {
       await txn.category.load();
@@ -53,8 +52,13 @@ class HomeController extends GetxController {
       }
     }
 
-    // Melakukan load IsarLink mutlak khusus untuk UI Recent Transactions
-    final recent = allTxn.take(5).toList();
+    final recent = await isar.transactions
+        .where()
+        .anyId()
+        .sortByDateDesc()
+        .limit(5)
+        .findAll();
+
     for (var txn in recent) {
       await txn.category.load();
       await txn.wallet.load();

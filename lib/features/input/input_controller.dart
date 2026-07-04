@@ -6,7 +6,6 @@ import '../../data/database_service.dart';
 import '../../data/models/transaction.dart';
 import '../../data/models/category.dart';
 import '../../data/models/wallet.dart';
-import '../home/home_controller.dart';
 
 class InputController extends GetxController {
   var amount = '0'.obs;
@@ -73,6 +72,8 @@ class InputController extends GetxController {
   }
 
   void addDigit(String num) {
+    if (amount.value.length >= 15) return;
+
     if (amount.value == '0') {
       amount.value = num;
     } else {
@@ -138,6 +139,7 @@ class InputController extends GetxController {
               .filter()
               .nameEqualTo('Transfer Internal')
               .findFirst();
+
           if (transferCat == null) {
             transferCat = Category()
               ..name = 'Transfer Internal'
@@ -175,10 +177,6 @@ class InputController extends GetxController {
           await txn.toWallet.save();
         }
       });
-
-      if (Get.isRegistered<HomeController>()) {
-        Get.find<HomeController>().loadHomeData();
-      }
 
       Get.back(result: true);
       Get.snackbar('Sukses', 'Transaksi berhasil dicatat',
