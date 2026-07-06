@@ -10,6 +10,8 @@ import '../../core/widgets/version_footer.dart';
 
 class GoalScreen extends StatelessWidget {
   final GoalController c = Get.put(GoalController());
+  static final _formatCurrency =
+      NumberFormat.currency(locale: 'id', symbol: 'Rp ', decimalDigits: 0);
 
   GoalScreen({super.key});
 
@@ -40,140 +42,183 @@ class GoalScreen extends StatelessWidget {
         child: const Icon(Icons.add, color: Colors.white),
       ).animate().scaleXY(begin: 0.8, end: 1.0, duration: 300.ms),
       body: Obx(() {
-        if (c.goals.isEmpty) {
-          return Center(
-            child: Text('Belum ada impian finansial.',
-                style:
-                    TextStyle(color: AppColors.textSecondary, fontSize: 14.sp)),
-          ).animate().fadeIn();
-        }
+        if (c.goals.isEmpty) return _buildEmptyState(context);
+        return _buildGoalList();
+      }),
+    );
+  }
 
-        final formatCurrency = NumberFormat.currency(
-            locale: 'id', symbol: 'Rp ', decimalDigits: 0);
+  Widget _buildEmptyState(BuildContext context) {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Container(
+            padding: EdgeInsets.all(24.w),
+            decoration: BoxDecoration(
+              color: const Color(0xFFF59E0B).withOpacity(0.1),
+              shape: BoxShape.circle,
+            ),
+            child: Icon(Icons.stars_rounded,
+                size: 48.sp, color: const Color(0xFFF59E0B)),
+          ),
+          SizedBox(height: 24.h),
+          Text(
+            'Belum Ada Impian',
+            style: TextStyle(
+                color: AppColors.textPrimary,
+                fontSize: 18.sp,
+                fontWeight: FontWeight.bold),
+          ),
+          SizedBox(height: 8.h),
+          Padding(
+            padding: EdgeInsets.symmetric(horizontal: 40.w),
+            child: Text(
+              'Ayo buat target tabungan impianmu dan mulai menabung sedikit demi sedikit.',
+              textAlign: TextAlign.center,
+              style: TextStyle(color: AppColors.textSecondary, fontSize: 14.sp),
+            ),
+          ),
+          SizedBox(height: 24.h),
+          ElevatedButton.icon(
+            onPressed: () => _showAddGoalSheet(context),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFFF59E0B),
+              foregroundColor: Colors.white,
+              elevation: 0,
+              padding: EdgeInsets.symmetric(horizontal: 24.w, vertical: 12.h),
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12.r)),
+            ),
+            icon: Icon(Icons.add_circle_outline, size: 18.sp),
+            label: Text('Buat Impian',
+                style: TextStyle(fontSize: 13.sp, fontWeight: FontWeight.w600)),
+          ),
+        ],
+      ).animate().fadeIn(duration: 400.ms).scale(begin: const Offset(0.9, 0.9)),
+    );
+  }
 
-        return ListView.separated(
-          physics: const BouncingScrollPhysics(),
-          padding: EdgeInsets.all(24.w),
-          itemCount: c.goals.length + 1,
-          separatorBuilder: (_, __) => SizedBox(height: 16.h),
-          itemBuilder: (context, index) {
-            if (index == c.goals.length) return VersionFooter();
+  Widget _buildGoalList() {
+    return ListView.separated(
+      physics: const BouncingScrollPhysics(),
+      padding: EdgeInsets.all(24.w),
+      itemCount: c.goals.length + 1,
+      separatorBuilder: (_, __) => SizedBox(height: 16.h),
+      itemBuilder: (context, index) {
+        if (index == c.goals.length) return VersionFooter();
 
-            final goal = c.goals[index];
-            final progress = goal.targetAmount > 0
-                ? (goal.savedAmount / goal.targetAmount)
-                : 0.0;
-            final isCompleted = progress >= 1.0;
-            final deadlineStr = DateFormat('dd MMM yyyy').format(goal.deadline);
+        final goal = c.goals[index];
+        final progress = goal.targetAmount > 0
+            ? (goal.savedAmount / goal.targetAmount)
+            : 0.0;
+        final isCompleted = progress >= 1.0;
+        final deadlineStr = DateFormat('dd MMM yyyy').format(goal.deadline);
 
-            return InkWell(
-              onTap: () => isCompleted ? null : _showTopUpSheet(context, goal),
-              onLongPress: () => _confirmDelete(context, goal.id),
+        return InkWell(
+          onTap: () => isCompleted ? null : _showTopUpSheet(context, goal),
+          onLongPress: () => _confirmDelete(context, goal.id),
+          borderRadius: BorderRadius.circular(16.r),
+          child: Ink(
+            padding: EdgeInsets.all(16.w),
+            decoration: BoxDecoration(
+              color: AppColors.card,
               borderRadius: BorderRadius.circular(16.r),
-              child: Ink(
-                padding: EdgeInsets.all(16.w),
-                decoration: BoxDecoration(
-                  color: AppColors.card,
-                  borderRadius: BorderRadius.circular(16.r),
-                  border: Border.all(
-                      color: isCompleted
-                          ? const Color(0xFF10B981).withOpacity(0.5)
-                          : Colors.transparent),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+              border: Border.all(
+                  color: isCompleted
+                      ? const Color(0xFF10B981).withOpacity(0.5)
+                      : Colors.transparent),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
                   children: [
-                    Row(
-                      children: [
-                        Container(
-                          padding: EdgeInsets.all(10.w),
-                          decoration: BoxDecoration(
-                              color: isCompleted
-                                  ? const Color(0xFF10B981).withOpacity(0.1)
-                                  : const Color(0xFFF59E0B).withOpacity(0.1),
-                              shape: BoxShape.circle),
-                          child: Icon(
-                              isCompleted ? Icons.check_circle : Icons.star,
-                              color: isCompleted
-                                  ? const Color(0xFF10B981)
-                                  : const Color(0xFFF59E0B),
-                              size: 20.sp),
-                        ),
-                        SizedBox(width: 12.w),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(goal.name,
-                                  style: TextStyle(
-                                      color: AppColors.textPrimary,
-                                      fontSize: 16.sp,
-                                      fontWeight: FontWeight.bold)),
-                              SizedBox(height: 2.h),
-                              Text('Target: $deadlineStr',
-                                  style: TextStyle(
-                                      color: AppColors.textSecondary,
-                                      fontSize: 11.sp)),
-                            ],
-                          ),
-                        ),
-                        if (!isCompleted)
-                          Container(
-                            padding: EdgeInsets.symmetric(
-                                horizontal: 12.w, vertical: 6.h),
-                            decoration: BoxDecoration(
-                                color: AppColors.primary.withOpacity(0.1),
-                                borderRadius: BorderRadius.circular(20.r)),
-                            child: Text('Nabung',
-                                style: TextStyle(
-                                    color: AppColors.primary,
-                                    fontSize: 12.sp,
-                                    fontWeight: FontWeight.bold)),
-                          ),
-                      ],
+                    Container(
+                      padding: EdgeInsets.all(10.w),
+                      decoration: BoxDecoration(
+                          color: isCompleted
+                              ? const Color(0xFF10B981).withOpacity(0.1)
+                              : const Color(0xFFF59E0B).withOpacity(0.1),
+                          shape: BoxShape.circle),
+                      child: Icon(isCompleted ? Icons.check_circle : Icons.star,
+                          color: isCompleted
+                              ? const Color(0xFF10B981)
+                              : const Color(0xFFF59E0B),
+                          size: 20.sp),
                     ),
-                    SizedBox(height: 16.h),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(formatCurrency.format(goal.savedAmount),
-                            style: TextStyle(
-                                color: isCompleted
-                                    ? const Color(0xFF10B981)
-                                    : AppColors.textPrimary,
-                                fontSize: 14.sp,
-                                fontWeight: FontWeight.bold)),
-                        Text(formatCurrency.format(goal.targetAmount),
-                            style: TextStyle(
-                                color: AppColors.textSecondary,
-                                fontSize: 12.sp)),
-                      ],
-                    ),
-                    SizedBox(height: 8.h),
-                    ClipRRect(
-                      borderRadius: BorderRadius.circular(8.r),
-                      child: LinearProgressIndicator(
-                        value: progress > 1.0 ? 1.0 : progress,
-                        minHeight: 8.h,
-                        backgroundColor: AppColors.background,
-                        valueColor: AlwaysStoppedAnimation<Color>(isCompleted
-                            ? const Color(0xFF10B981)
-                            : const Color(0xFFF59E0B)),
+                    SizedBox(width: 12.w),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(goal.name,
+                              style: TextStyle(
+                                  color: AppColors.textPrimary,
+                                  fontSize: 16.sp,
+                                  fontWeight: FontWeight.bold)),
+                          SizedBox(height: 2.h),
+                          Text('Target: $deadlineStr',
+                              style: TextStyle(
+                                  color: AppColors.textSecondary,
+                                  fontSize: 11.sp)),
+                        ],
                       ),
                     ),
-                    SizedBox(height: 8.h),
-                    Text('${(progress * 100).toStringAsFixed(1)}% Terkumpul',
-                        style: TextStyle(
-                            color: AppColors.textSecondary,
-                            fontSize: 12.sp,
-                            fontWeight: FontWeight.w600)),
+                    if (!isCompleted)
+                      Container(
+                        padding: EdgeInsets.symmetric(
+                            horizontal: 12.w, vertical: 6.h),
+                        decoration: BoxDecoration(
+                            color: AppColors.primary.withOpacity(0.1),
+                            borderRadius: BorderRadius.circular(20.r)),
+                        child: Text('Nabung',
+                            style: TextStyle(
+                                color: AppColors.primary,
+                                fontSize: 12.sp,
+                                fontWeight: FontWeight.bold)),
+                      ),
                   ],
                 ),
-              ),
-            ).animate().fadeIn(delay: (50 * index).ms).slideX(begin: 0.1);
-          },
-        );
-      }),
+                SizedBox(height: 16.h),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(_formatCurrency.format(goal.savedAmount),
+                        style: TextStyle(
+                            color: isCompleted
+                                ? const Color(0xFF10B981)
+                                : AppColors.textPrimary,
+                            fontSize: 14.sp,
+                            fontWeight: FontWeight.bold)),
+                    Text(_formatCurrency.format(goal.targetAmount),
+                        style: TextStyle(
+                            color: AppColors.textSecondary, fontSize: 12.sp)),
+                  ],
+                ),
+                SizedBox(height: 8.h),
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(8.r),
+                  child: LinearProgressIndicator(
+                    value: progress > 1.0 ? 1.0 : progress,
+                    minHeight: 8.h,
+                    backgroundColor: AppColors.background,
+                    valueColor: AlwaysStoppedAnimation<Color>(isCompleted
+                        ? const Color(0xFF10B981)
+                        : const Color(0xFFF59E0B)),
+                  ),
+                ),
+                SizedBox(height: 8.h),
+                Text('${(progress * 100).toStringAsFixed(1)}% Terkumpul',
+                    style: TextStyle(
+                        color: AppColors.textSecondary,
+                        fontSize: 12.sp,
+                        fontWeight: FontWeight.w600)),
+              ],
+            ),
+          ),
+        ).animate().fadeIn(delay: (50 * index).ms).slideX(begin: 0.1);
+      },
     );
   }
 

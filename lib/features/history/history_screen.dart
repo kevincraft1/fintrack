@@ -10,6 +10,7 @@ import '../../core/utils/icon_mapper.dart';
 import '../../core/utils/pdf_helper.dart';
 import '../../core/utils/csv_helper.dart';
 import '../../core/widgets/version_footer.dart';
+import '../../data/models/transaction.dart';
 
 class HistoryScreen extends StatelessWidget {
   final HistoryController c = Get.put(HistoryController());
@@ -34,53 +35,7 @@ class HistoryScreen extends StatelessWidget {
                 color: AppColors.textPrimary,
                 fontWeight: FontWeight.bold)),
         centerTitle: true,
-        actions: [
-          PopupMenuButton<String>(
-            icon: const Icon(Icons.download_rounded, color: AppColors.primary),
-            color: AppColors.card,
-            shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(16.r)),
-            onSelected: (value) {
-              if (c.transactions.isEmpty) {
-                Get.snackbar(
-                    'Data Kosong', 'Tidak ada transaksi untuk diekspor.',
-                    snackPosition: SnackPosition.BOTTOM,
-                    backgroundColor: AppColors.error,
-                    colorText: Colors.white);
-                return;
-              }
-              if (value == 'pdf') {
-                PdfHelper.generateAndPrintReport(c.transactions.toList(),
-                    c.selectedMonth.value, c.selectedYear.value);
-              } else if (value == 'csv') {
-                CsvHelper.generateAndShareCsv(c.transactions.toList(),
-                    c.selectedMonth.value, c.selectedYear.value);
-              }
-            },
-            itemBuilder: (context) => [
-              PopupMenuItem(
-                  value: 'pdf',
-                  child: Row(children: [
-                    Icon(Icons.picture_as_pdf,
-                        color: AppColors.error, size: 20.sp),
-                    SizedBox(width: 12.w),
-                    Text('Cetak Laporan PDF',
-                        style: TextStyle(
-                            color: AppColors.textPrimary, fontSize: 14.sp))
-                  ])),
-              PopupMenuItem(
-                  value: 'csv',
-                  child: Row(children: [
-                    Icon(Icons.table_chart,
-                        color: Colors.greenAccent, size: 20.sp),
-                    SizedBox(width: 12.w),
-                    Text('Ekspor Data CSV',
-                        style: TextStyle(
-                            color: AppColors.textPrimary, fontSize: 14.sp))
-                  ])),
-            ],
-          ),
-        ],
+        actions: [_buildExportMenu()],
       ),
       body: Column(
         children: [
@@ -95,135 +50,206 @@ class HistoryScreen extends StatelessWidget {
           Expanded(
             child: Obx(() {
               if (c.transactions.isEmpty) {
-                return Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(Icons.search_off,
-                          size: 64.sp,
-                          color: AppColors.textSecondary.withOpacity(0.5)),
-                      SizedBox(height: 16.h),
-                      Text(
-                          c.searchQuery.value.isEmpty
-                              ? 'Belum ada transaksi.'
-                              : 'Data tidak ditemukan.',
-                          style: TextStyle(
-                              color: AppColors.textSecondary, fontSize: 16.sp)),
-                    ],
-                  ).animate().fadeIn(),
-                );
+                return _buildDynamicEmptyState();
               }
-
-              return ListView.separated(
-                physics: const BouncingScrollPhysics(),
-                padding: EdgeInsets.symmetric(horizontal: 24.w, vertical: 16.h),
-                itemCount: c.transactions.length,
-                separatorBuilder: (context, index) => SizedBox(height: 12.h),
-                itemBuilder: (context, index) {
-                  final txn = c.transactions[index];
-                  final category = txn.category.value;
-                  final wallet = txn.wallet.value;
-                  final categoryName = category?.name ?? 'Lainnya';
-                  final iconData = category != null
-                      ? IconMapper.getIcon(category.iconName)
-                      : Icons.category;
-
-                  final formatCurrency = NumberFormat.currency(
-                      locale: 'id', symbol: 'Rp ', decimalDigits: 0);
-                  final formatDate =
-                      DateFormat('dd MMM yyyy • HH:mm').format(txn.date);
-
-                  final isIncome = category?.type == 'income';
-                  final isTransfer = category?.type == 'transfer';
-
-                  final operator = isTransfer ? '' : (isIncome ? '+' : '-');
-                  final amountColor = isTransfer
-                      ? const Color(0xFF3B82F6)
-                      : (isIncome ? AppColors.primary : AppColors.error);
-                  final hasNote = txn.note != null && txn.note!.isNotEmpty;
-
-                  // Susun rincian dompet untuk Transfer
-                  String subtitleText = formatDate;
-                  if (isTransfer) {
-                    final toWallet = txn.toWallet.value;
-                    subtitleText +=
-                        ' • ${wallet?.name ?? '-'} ➔ ${toWallet?.name ?? '-'}';
-                  } else {
-                    subtitleText += ' • ${wallet?.name ?? '-'}';
-                  }
-
-                  return InkWell(
-                    onTap: () => Get.to(
-                        () => EditTransactionScreen(transaction: txn),
-                        transition: Transition.rightToLeftWithFade),
-                    onLongPress: () => _confirmDelete(context, txn.id),
-                    borderRadius: BorderRadius.circular(16.r),
-                    child: Ink(
-                      padding: EdgeInsets.all(16.w),
-                      decoration: BoxDecoration(
-                          color: AppColors.card,
-                          borderRadius: BorderRadius.circular(16.r)),
-                      child: Row(
-                        children: [
-                          Container(
-                            padding: EdgeInsets.all(12.w),
-                            decoration: const BoxDecoration(
-                                color: AppColors.background,
-                                shape: BoxShape.circle),
-                            child:
-                                Icon(iconData, color: amountColor, size: 24.sp),
-                          ),
-                          SizedBox(width: 16.w),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(categoryName,
-                                    style: TextStyle(
-                                        color: AppColors.textPrimary,
-                                        fontSize: 16.sp,
-                                        fontWeight: FontWeight.bold)),
-                                if (hasNote) ...[
-                                  SizedBox(height: 2.h),
-                                  Text(txn.note!,
-                                      style: TextStyle(
-                                          color: AppColors.textSecondary
-                                              .withOpacity(0.8),
-                                          fontSize: 12.sp,
-                                          fontStyle: FontStyle.italic),
-                                      maxLines: 1,
-                                      overflow: TextOverflow.ellipsis),
-                                ],
-                                SizedBox(height: 4.h),
-                                Text(subtitleText,
-                                    style: TextStyle(
-                                        color: AppColors.textSecondary,
-                                        fontSize: 11.sp)),
-                              ],
-                            ),
-                          ),
-                          Text(
-                            '$operator ${formatCurrency.format(txn.amount)}',
-                            style: TextStyle(
-                                color: amountColor,
-                                fontSize: 14.sp,
-                                fontWeight: FontWeight.w700),
-                          ),
-                        ],
-                      ),
-                    ),
-                  )
-                      .animate(key: ValueKey(txn.id))
-                      .fadeIn(delay: (30 * (index < 10 ? index : 0)).ms)
-                      .slideX(begin: 0.1, end: 0);
-                },
-              );
+              return _buildTransactionList();
             }),
           ),
           VersionFooter(),
         ],
       ),
     );
+  }
+
+  Widget _buildExportMenu() {
+    return PopupMenuButton<String>(
+      icon: const Icon(Icons.download_rounded, color: AppColors.primary),
+      color: AppColors.card,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16.r)),
+      onSelected: (value) {
+        if (c.transactions.isEmpty) {
+          Get.snackbar('Data Kosong', 'Tidak ada transaksi untuk diekspor.',
+              snackPosition: SnackPosition.BOTTOM,
+              backgroundColor: AppColors.error,
+              colorText: Colors.white);
+          return;
+        }
+        if (value == 'pdf') {
+          PdfHelper.generateAndPrintReport(c.transactions.toList(),
+              c.selectedMonth.value, c.selectedYear.value);
+        } else if (value == 'csv') {
+          CsvHelper.generateAndShareCsv(c.transactions.toList(),
+              c.selectedMonth.value, c.selectedYear.value);
+        }
+      },
+      itemBuilder: (context) => [
+        PopupMenuItem(
+            value: 'pdf',
+            child: Row(children: [
+              Icon(Icons.picture_as_pdf, color: AppColors.error, size: 20.sp),
+              SizedBox(width: 12.w),
+              Text('Cetak Laporan PDF',
+                  style:
+                      TextStyle(color: AppColors.textPrimary, fontSize: 14.sp))
+            ])),
+        PopupMenuItem(
+            value: 'csv',
+            child: Row(children: [
+              Icon(Icons.table_chart, color: Colors.greenAccent, size: 20.sp),
+              SizedBox(width: 12.w),
+              Text('Ekspor Data CSV',
+                  style:
+                      TextStyle(color: AppColors.textPrimary, fontSize: 14.sp))
+            ])),
+      ],
+    );
+  }
+
+  Widget _buildDynamicEmptyState() {
+    final isSearch = c.searchQuery.value.isNotEmpty;
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Container(
+            padding: EdgeInsets.all(24.w),
+            decoration: BoxDecoration(
+              color: isSearch
+                  ? AppColors.error.withOpacity(0.1)
+                  : AppColors.primary.withOpacity(0.1),
+              shape: BoxShape.circle,
+            ),
+            child: Icon(
+              isSearch
+                  ? Icons.search_off_rounded
+                  : Icons.history_toggle_off_rounded,
+              size: 48.sp,
+              color: isSearch ? AppColors.error : AppColors.primary,
+            ),
+          ),
+          SizedBox(height: 24.h),
+          Text(
+            isSearch ? 'Data Tidak Ditemukan' : 'Riwayat Masih Kosong',
+            style: TextStyle(
+                color: AppColors.textPrimary,
+                fontSize: 18.sp,
+                fontWeight: FontWeight.bold),
+          ),
+          SizedBox(height: 8.h),
+          Padding(
+            padding: EdgeInsets.symmetric(horizontal: 40.w),
+            child: Text(
+              isSearch
+                  ? 'Coba gunakan kata kunci lain untuk mencari transaksi.'
+                  : 'Belum ada catatan keuangan pada bulan dan tahun ini.',
+              textAlign: TextAlign.center,
+              style: TextStyle(color: AppColors.textSecondary, fontSize: 14.sp),
+            ),
+          ),
+        ],
+      ).animate().fadeIn(duration: 400.ms).scale(begin: const Offset(0.9, 0.9)),
+    );
+  }
+
+  Widget _buildTransactionList() {
+    return ListView.separated(
+      physics: const BouncingScrollPhysics(),
+      padding: EdgeInsets.symmetric(horizontal: 24.w, vertical: 16.h),
+      itemCount: c.transactions.length,
+      separatorBuilder: (context, index) => SizedBox(height: 12.h),
+      itemBuilder: (context, index) =>
+          _buildTransactionItem(context, c.transactions[index], index),
+    );
+  }
+
+  Widget _buildTransactionItem(
+      BuildContext context, Transaction txn, int index) {
+    final category = txn.category.value;
+    final wallet = txn.wallet.value;
+    final categoryName = category?.name ?? 'Lainnya';
+    final iconData = category != null
+        ? IconMapper.getIcon(category.iconName)
+        : Icons.category;
+
+    final formatCurrency =
+        NumberFormat.currency(locale: 'id', symbol: 'Rp ', decimalDigits: 0);
+    final formatDate = DateFormat('dd MMM yyyy • HH:mm').format(txn.date);
+
+    final isIncome = category?.type == 'income';
+    final isTransfer = category?.type == 'transfer';
+
+    final operator = isTransfer ? '' : (isIncome ? '+' : '-');
+    final amountColor = isTransfer
+        ? const Color(0xFF3B82F6)
+        : (isIncome ? AppColors.primary : AppColors.error);
+    final hasNote = txn.note != null && txn.note!.isNotEmpty;
+
+    String subtitleText = formatDate;
+    if (isTransfer) {
+      final toWallet = txn.toWallet.value;
+      subtitleText += ' • ${wallet?.name ?? '-'} ➔ ${toWallet?.name ?? '-'}';
+    } else {
+      subtitleText += ' • ${wallet?.name ?? '-'}';
+    }
+
+    return InkWell(
+      onTap: () => Get.to(() => EditTransactionScreen(transaction: txn),
+          transition: Transition.rightToLeftWithFade),
+      onLongPress: () => _confirmDelete(context, txn.id),
+      borderRadius: BorderRadius.circular(16.r),
+      child: Ink(
+        padding: EdgeInsets.all(16.w),
+        decoration: BoxDecoration(
+            color: AppColors.card, borderRadius: BorderRadius.circular(16.r)),
+        child: Row(
+          children: [
+            Container(
+              padding: EdgeInsets.all(12.w),
+              decoration: const BoxDecoration(
+                  color: AppColors.background, shape: BoxShape.circle),
+              child: Icon(iconData, color: amountColor, size: 24.sp),
+            ),
+            SizedBox(width: 16.w),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(categoryName,
+                      style: TextStyle(
+                          color: AppColors.textPrimary,
+                          fontSize: 16.sp,
+                          fontWeight: FontWeight.bold)),
+                  if (hasNote) ...[
+                    SizedBox(height: 2.h),
+                    Text(txn.note!,
+                        style: TextStyle(
+                            color: AppColors.textSecondary.withOpacity(0.8),
+                            fontSize: 12.sp,
+                            fontStyle: FontStyle.italic),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis),
+                  ],
+                  SizedBox(height: 4.h),
+                  Text(subtitleText,
+                      style: TextStyle(
+                          color: AppColors.textSecondary, fontSize: 11.sp)),
+                ],
+              ),
+            ),
+            Text(
+              '$operator ${formatCurrency.format(txn.amount)}',
+              style: TextStyle(
+                  color: amountColor,
+                  fontSize: 14.sp,
+                  fontWeight: FontWeight.w700),
+            ),
+          ],
+        ),
+      ),
+    )
+        .animate(key: ValueKey(txn.id))
+        .fadeIn(delay: (30 * (index < 10 ? index : 0)).ms)
+        .slideX(begin: 0.1, end: 0);
   }
 
   Widget _buildFilterRow() {

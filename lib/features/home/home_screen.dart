@@ -28,83 +28,91 @@ class HomeScreen extends StatelessWidget {
           physics: const AlwaysScrollableScrollPhysics(
               parent: BouncingScrollPhysics()),
           slivers: [
-            SliverAppBar(
-              backgroundColor: AppColors.background,
-              elevation: 0,
-              pinned: true,
-              centerTitle: false,
-              titleSpacing: 24.w,
-              toolbarHeight: 56.h,
-              title: Row(
-                children: [
-                  Image.asset(
-                    'assets/images/fintrack-pro.png',
-                    width: 32.w,
-                    height: 32.w,
-                    fit: BoxFit.contain,
-                  ),
-                  SizedBox(width: 12.w),
-                  Text(
-                    'FinTrack Pro',
-                    style: TextStyle(
-                        color: AppColors.textPrimary,
-                        fontSize: 20.sp,
-                        fontWeight: FontWeight.bold),
-                  ),
-                ],
-              ),
-              actions: [
-                Padding(
-                  padding: EdgeInsets.only(right: 24.w),
-                  child: GestureDetector(
-                    onTap: () => Get.to(() => ProfileScreen(),
-                        transition: Transition.rightToLeftWithFade),
-                    child: Container(
-                      padding: EdgeInsets.all(8.w),
-                      decoration: BoxDecoration(
-                        color: AppColors.card,
-                        shape: BoxShape.circle,
-                        border: Border.all(
-                            color: AppColors.primary.withOpacity(0.2)),
-                      ),
-                      child: Icon(Icons.person_outline,
-                          color: AppColors.primary, size: 22.sp),
-                    ),
-                  ),
-                ),
-              ],
-            ),
+            _buildAppBar(),
             SliverToBoxAdapter(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  BalanceSummaryCard()
-                      .animate()
-                      .fadeIn(duration: 500.ms)
-                      .slideY(begin: 0.1, end: 0),
-                  SizedBox(height: 24.h),
-                  WalletListSection()
-                      .animate()
-                      .fadeIn(delay: 100.ms)
-                      .slideX(begin: 0.1, end: 0),
-                  SizedBox(height: 24.h),
-                  const QuickActions()
-                      .animate()
-                      .fadeIn(delay: 200.ms)
-                      .slideY(begin: 0.1, end: 0),
-                  SizedBox(height: 24.h),
-                  RecentTransactions()
-                      .animate()
-                      .fadeIn(delay: 300.ms)
-                      .slideY(begin: 0.1, end: 0),
-                  SizedBox(height: 24.h),
-                  VersionFooter(),
-                ],
-              ),
+              child: _buildBodyContent(),
             ),
           ],
         ),
       ),
+    );
+  }
+
+  SliverAppBar _buildAppBar() {
+    return SliverAppBar(
+      backgroundColor: AppColors.background,
+      elevation: 0,
+      pinned: true,
+      centerTitle: false,
+      titleSpacing: 24.w,
+      toolbarHeight: 56.h,
+      title: Row(
+        children: [
+          Image.asset(
+            'assets/images/fintrack-pro.png',
+            width: 32.w,
+            height: 32.w,
+            fit: BoxFit.contain,
+          ),
+          SizedBox(width: 12.w),
+          Text(
+            'FinTrack Pro',
+            style: TextStyle(
+                color: AppColors.textPrimary,
+                fontSize: 20.sp,
+                fontWeight: FontWeight.bold),
+          ),
+        ],
+      ),
+      actions: [
+        Padding(
+          padding: EdgeInsets.only(right: 24.w),
+          child: GestureDetector(
+            onTap: () => Get.to(() => ProfileScreen(),
+                transition: Transition.rightToLeftWithFade),
+            child: Container(
+              padding: EdgeInsets.all(8.w),
+              decoration: BoxDecoration(
+                color: AppColors.card,
+                shape: BoxShape.circle,
+                border: Border.all(color: AppColors.primary.withOpacity(0.2)),
+              ),
+              child: Icon(Icons.person_outline,
+                  color: AppColors.primary, size: 22.sp),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildBodyContent() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        SizedBox(height: 16.h),
+        BalanceSummaryCard()
+            .animate()
+            .fadeIn(duration: 500.ms)
+            .slideY(begin: 0.1, end: 0),
+        SizedBox(height: 24.h),
+        WalletListSection()
+            .animate()
+            .fadeIn(delay: 100.ms)
+            .slideX(begin: 0.1, end: 0),
+        SizedBox(height: 24.h),
+        const QuickActions()
+            .animate()
+            .fadeIn(delay: 200.ms)
+            .slideY(begin: 0.1, end: 0),
+        SizedBox(height: 24.h),
+        RecentTransactions()
+            .animate()
+            .fadeIn(delay: 300.ms)
+            .slideY(begin: 0.1, end: 0),
+        SizedBox(height: 24.h),
+        VersionFooter(),
+      ],
     );
   }
 }

@@ -1,6 +1,8 @@
 import 'dart:io';
+import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:intl/intl.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:file_picker/file_picker.dart';
@@ -10,15 +12,26 @@ import '../home/home_controller.dart';
 import '../profile/profile_controller.dart';
 
 class BackupController extends GetxController {
+  static const String _secretKey = 'F1nTr4ckPr0_3nt3rpr1s3_K3y_2026';
+
   Future<void> exportDatabase() async {
     try {
       final dir = await getApplicationDocumentsDirectory();
       final dbPath = '${dir.path}/default.isar';
-      final file = File(dbPath);
+      final dbFile = File(dbPath);
 
-      if (await file.exists()) {
+      if (await dbFile.exists()) {
+        final bytes = await dbFile.readAsBytes();
+        final encryptedBytes = _processBytes(bytes);
+
+        final dateStr = DateFormat('yyyyMMdd_HHmmss').format(DateTime.now());
+        final backupPath = '${dir.path}/FinTrack_$dateStr.fintrack';
+        final backupFile = File(backupPath);
+
+        await backupFile.writeAsBytes(encryptedBytes);
+
         await Share.shareXFiles(
-          [XFile(dbPath)],
+          [XFile(backupPath)],
           text: 'Backup Database FinTrack Pro',
         );
       } else {
@@ -38,19 +51,22 @@ class BackupController extends GetxController {
       if (result != null && result.files.single.path != null) {
         final importPath = result.files.single.path!;
 
-        if (!importPath.endsWith('.isar')) {
-          _showError('File tidak valid. Harap pilih file .isar');
+        if (!importPath.endsWith('.fintrack')) {
+          _showError('File tidak valid. Harap pilih file .fintrack');
           return;
         }
+
+        final importFile = File(importPath);
+        final encryptedBytes = await importFile.readAsBytes();
+        final decryptedBytes = _processBytes(encryptedBytes);
 
         await DatabaseService.isar.close();
 
         final dir = await getApplicationDocumentsDirectory();
         final dbPath = '${dir.path}/default.isar';
+        final dbFile = File(dbPath);
 
-        final importFile = File(importPath);
-        await importFile.copy(dbPath);
-
+        await dbFile.writeAsBytes(decryptedBytes);
         await DatabaseService.init();
 
         if (Get.isRegistered<HomeController>()) {
@@ -70,8 +86,17 @@ class BackupController extends GetxController {
       }
     } catch (e) {
       await DatabaseService.init();
-      _showError('Gagal memulihkan data: $e');
+      _showError('Gagal memulihkan data. File korup atau tidak valid.');
     }
+  }
+
+  Uint8List _processBytes(List<int> bytes) {
+    final keyUnits = _secretKey.codeUnits;
+    final result = Uint8List(bytes.length);
+    for (int i = 0; i < bytes.length; i++) {
+      result[i] = bytes[i] ^ keyUnits[i % keyUnits.length];
+    }
+    return result;
   }
 
   void _showError(String message) {

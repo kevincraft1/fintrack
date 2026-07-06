@@ -35,7 +35,6 @@ class PreferenceMenu extends StatelessWidget {
         actions: [
           TextButton(
             onPressed: () => Get.back(),
-            // INJEKSI CONST MUTLAK UNTUK OPTIMASI MEMORI
             child: const Text(
               'SAYA MENGERTI',
               style: TextStyle(
@@ -52,17 +51,53 @@ class PreferenceMenu extends StatelessWidget {
     final String version = packageInfo.version;
 
     if (context.mounted) {
-      showAboutDialog(
+      showDialog(
         context: context,
-        applicationName: 'FinTrack Pro',
-        applicationVersion: 'v$version (Enterprise Edition)',
-        applicationIcon: ClipRRect(
-          borderRadius: BorderRadius.circular(12.r),
-          child: Image.asset('assets/images/fintrack-pro.png',
-              width: 48.w, height: 48.w, fit: BoxFit.contain),
+        builder: (context) => AlertDialog(
+          backgroundColor: AppColors.card,
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(20.r)),
+          contentPadding: EdgeInsets.all(24.w),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              ClipRRect(
+                borderRadius: BorderRadius.circular(12.r),
+                child: Image.asset('assets/images/fintrack-pro.png',
+                    width: 64.w, height: 64.w, fit: BoxFit.contain),
+              ),
+              SizedBox(height: 16.h),
+              Text('FinTrack Pro',
+                  style: TextStyle(
+                      color: AppColors.textPrimary,
+                      fontSize: 20.sp,
+                      fontWeight: FontWeight.bold)),
+              SizedBox(height: 4.h),
+              Text('v$version (Enterprise Edition)',
+                  style: TextStyle(
+                      color: AppColors.primary,
+                      fontSize: 14.sp,
+                      fontWeight: FontWeight.w600)),
+              SizedBox(height: 24.h),
+              Text(
+                '© 2026 Hak Cipta Dilindungi Undang-Undang.\nPerangkat Lunak Proprietary tertutup.\nDikembangkan eksklusif untuk keamanan finansial mutlak.',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                    color: AppColors.textSecondary,
+                    fontSize: 12.sp,
+                    height: 1.5),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Get.back(),
+              child: const Text('TUTUP',
+                  style: TextStyle(
+                      color: AppColors.primary, fontWeight: FontWeight.bold)),
+            ),
+          ],
         ),
-        applicationLegalese:
-            '© 2026 Hak Cipta Dilindungi Undang-Undang.\nPerangkat Lunak Proprietary tertutup.\nDikembangkan eksklusif untuk keamanan finansial mutlak.',
       );
     }
   }
@@ -93,7 +128,6 @@ class PreferenceMenu extends StatelessWidget {
                 _buildMenuItem(
                   Icons.account_balance_wallet_outlined,
                   'Kelola Dompet',
-                  'Atur saldo & multi-akun',
                   onTap: () => Get.to(() => WalletManagementScreen()),
                 ),
                 Divider(
@@ -101,7 +135,6 @@ class PreferenceMenu extends StatelessWidget {
                 _buildMenuItem(
                   Icons.category_outlined,
                   'Kelola Kategori',
-                  'Atur jenis pemasukan & pengeluaran',
                   onTap: () => Get.to(() => CategoryManagementScreen()),
                 ),
                 Divider(
@@ -109,7 +142,6 @@ class PreferenceMenu extends StatelessWidget {
                 Obx(() => _buildSwitchItem(
                       Icons.lock_outline,
                       'Keamanan Privasi',
-                      'Kunci aplikasi biometrik',
                       securityC.isAppLockEnabled.value,
                       securityC.toggleAppLock,
                     )),
@@ -118,7 +150,6 @@ class PreferenceMenu extends StatelessWidget {
                 _buildMenuItem(
                   Icons.cloud_upload_outlined,
                   'Backup Data',
-                  'Ekspor database ke penyimpanan',
                   onTap: backupC.exportDatabase,
                 ),
                 Divider(
@@ -126,7 +157,6 @@ class PreferenceMenu extends StatelessWidget {
                 _buildMenuItem(
                   Icons.cloud_download_outlined,
                   'Restore Data',
-                  'Pulihkan database dari file .isar',
                   onTap: backupC.importDatabase,
                 ),
                 Divider(
@@ -134,7 +164,6 @@ class PreferenceMenu extends StatelessWidget {
                 _buildMenuItem(
                   Icons.shield_outlined,
                   'Kebijakan Privasi',
-                  'Syarat & ketentuan data',
                   onTap: () => _showPrivacyPolicy(context),
                 ),
                 Divider(
@@ -142,7 +171,6 @@ class PreferenceMenu extends StatelessWidget {
                 _buildMenuItem(
                   Icons.info_outline,
                   'Tentang Aplikasi',
-                  'Informasi lisensi & versi',
                   onTap: () => _showAboutApp(context),
                 ),
               ],
@@ -153,10 +181,10 @@ class PreferenceMenu extends StatelessWidget {
     );
   }
 
-  Widget _buildMenuItem(IconData icon, String title, String subtitle,
+  Widget _buildMenuItem(IconData icon, String title,
       {required VoidCallback onTap}) {
     return ListTile(
-      contentPadding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 4.h),
+      contentPadding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 8.h),
       leading: Container(
         padding: EdgeInsets.all(10.w),
         decoration: const BoxDecoration(
@@ -168,18 +196,16 @@ class PreferenceMenu extends StatelessWidget {
               color: AppColors.textPrimary,
               fontSize: 14.sp,
               fontWeight: FontWeight.w600)),
-      subtitle: Text(subtitle,
-          style: TextStyle(color: AppColors.textSecondary, fontSize: 12.sp)),
       trailing: const Icon(Icons.arrow_forward_ios,
           color: AppColors.textSecondary, size: 14),
       onTap: onTap,
     );
   }
 
-  Widget _buildSwitchItem(IconData icon, String title, String subtitle,
-      bool value, Function(bool) onChanged) {
+  Widget _buildSwitchItem(
+      IconData icon, String title, bool value, Function(bool) onChanged) {
     return ListTile(
-      contentPadding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 4.h),
+      contentPadding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 8.h),
       leading: Container(
         padding: EdgeInsets.all(10.w),
         decoration: const BoxDecoration(
@@ -191,8 +217,6 @@ class PreferenceMenu extends StatelessWidget {
               color: AppColors.textPrimary,
               fontSize: 14.sp,
               fontWeight: FontWeight.w600)),
-      subtitle: Text(subtitle,
-          style: TextStyle(color: AppColors.textSecondary, fontSize: 12.sp)),
       trailing: Switch(
         value: value,
         onChanged: onChanged,

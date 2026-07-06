@@ -11,6 +11,8 @@ import '../../core/widgets/version_footer.dart';
 
 class BudgetScreen extends StatelessWidget {
   final BudgetController c = Get.put(BudgetController());
+  static final _formatCurrency =
+      NumberFormat.currency(locale: 'id', symbol: 'Rp ', decimalDigits: 0);
 
   BudgetScreen({super.key});
 
@@ -49,119 +51,158 @@ class BudgetScreen extends StatelessWidget {
               .slideY(begin: -0.2, end: 0),
           Expanded(
             child: Obx(() {
-              if (c.budgets.isEmpty) {
-                return Center(
-                  child: Text('Belum ada anggaran bulan ini.',
-                      style: TextStyle(
-                          color: AppColors.textSecondary, fontSize: 14.sp)),
-                ).animate().fadeIn();
-              }
-
-              final formatCurrency = NumberFormat.currency(
-                  locale: 'id', symbol: 'Rp ', decimalDigits: 0);
-
-              return ListView.separated(
-                physics: const BouncingScrollPhysics(),
-                padding: EdgeInsets.all(24.w),
-                itemCount: c.budgets.length,
-                separatorBuilder: (_, __) => SizedBox(height: 16.h),
-                itemBuilder: (context, index) {
-                  final data = c.budgets[index];
-                  final cat = data.budget.category.value;
-                  final limit = data.budget.limitAmount;
-                  final spent = data.spentAmount;
-                  final double progress = limit > 0 ? (spent / limit) : 0.0;
-
-                  Color progressColor = AppColors.primary;
-                  if (progress >= 1.0) {
-                    progressColor = AppColors.error;
-                  } else if (progress >= 0.8) {
-                    progressColor = const Color(0xFFF59E0B);
-                  }
-
-                  return InkWell(
-                    onLongPress: () => _confirmDelete(context, data.budget.id),
-                    borderRadius: BorderRadius.circular(16.r),
-                    child: Ink(
-                      padding: EdgeInsets.all(16.w),
-                      decoration: BoxDecoration(
-                        color: AppColors.card,
-                        borderRadius: BorderRadius.circular(16.r),
-                        border: Border.all(
-                            color: progress >= 1.0
-                                ? AppColors.error.withOpacity(0.3)
-                                : Colors.transparent),
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
-                            children: [
-                              Container(
-                                padding: EdgeInsets.all(10.w),
-                                decoration: const BoxDecoration(
-                                    color: AppColors.background,
-                                    shape: BoxShape.circle),
-                                child: Icon(
-                                    IconMapper.getIcon(
-                                        cat?.iconName ?? 'category'),
-                                    color: AppColors.primary,
-                                    size: 20.sp),
-                              ),
-                              SizedBox(width: 12.w),
-                              Expanded(
-                                child: Text(cat?.name ?? 'Lainnya',
-                                    style: TextStyle(
-                                        color: AppColors.textPrimary,
-                                        fontSize: 14.sp,
-                                        fontWeight: FontWeight.bold)),
-                              ),
-                              Text(
-                                formatCurrency.format(spent),
-                                style: TextStyle(
-                                    color: progressColor,
-                                    fontSize: 14.sp,
-                                    fontWeight: FontWeight.bold),
-                              ),
-                            ],
-                          ),
-                          SizedBox(height: 16.h),
-                          ClipRRect(
-                            borderRadius: BorderRadius.circular(8.r),
-                            child: LinearProgressIndicator(
-                              value: progress > 1.0 ? 1.0 : progress,
-                              minHeight: 8.h,
-                              backgroundColor: AppColors.background,
-                              valueColor:
-                                  AlwaysStoppedAnimation<Color>(progressColor),
-                            ),
-                          ),
-                          SizedBox(height: 8.h),
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Text(
-                                  '${(progress * 100).toStringAsFixed(1)}% Terpakai',
-                                  style: TextStyle(
-                                      color: AppColors.textSecondary,
-                                      fontSize: 12.sp)),
-                              Text('Batas: ${formatCurrency.format(limit)}',
-                                  style: TextStyle(
-                                      color: AppColors.textSecondary,
-                                      fontSize: 12.sp)),
-                            ],
-                          ),
-                        ],
-                      ),
-                    ),
-                  ).animate().fadeIn(delay: (50 * index).ms).slideX(begin: 0.1);
-                },
-              );
+              if (c.budgets.isEmpty) return _buildEmptyState(context);
+              return _buildBudgetList();
             }),
           ),
           VersionFooter(),
         ],
       ),
+    );
+  }
+
+  Widget _buildEmptyState(BuildContext context) {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Container(
+            padding: EdgeInsets.all(24.w),
+            decoration: BoxDecoration(
+              color: AppColors.primary.withOpacity(0.1),
+              shape: BoxShape.circle,
+            ),
+            child: Icon(Icons.track_changes_rounded,
+                size: 48.sp, color: AppColors.primary),
+          ),
+          SizedBox(height: 24.h),
+          Text(
+            'Belum Ada Anggaran',
+            style: TextStyle(
+                color: AppColors.textPrimary,
+                fontSize: 18.sp,
+                fontWeight: FontWeight.bold),
+          ),
+          SizedBox(height: 8.h),
+          Padding(
+            padding: EdgeInsets.symmetric(horizontal: 40.w),
+            child: Text(
+              'Tentukan batas pengeluaran bulan ini agar keuanganmu lebih terkontrol.',
+              textAlign: TextAlign.center,
+              style: TextStyle(color: AppColors.textSecondary, fontSize: 14.sp),
+            ),
+          ),
+          SizedBox(height: 24.h),
+          ElevatedButton.icon(
+            onPressed: () => _showAddBudgetSheet(context),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.primary,
+              foregroundColor: Colors.white,
+              elevation: 0,
+              padding: EdgeInsets.symmetric(horizontal: 24.w, vertical: 12.h),
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12.r)),
+            ),
+            icon: Icon(Icons.add_circle_outline, size: 18.sp),
+            label: Text('Buat Anggaran',
+                style: TextStyle(fontSize: 13.sp, fontWeight: FontWeight.w600)),
+          ),
+        ],
+      ).animate().fadeIn(duration: 400.ms).scale(begin: const Offset(0.9, 0.9)),
+    );
+  }
+
+  Widget _buildBudgetList() {
+    return ListView.separated(
+      physics: const BouncingScrollPhysics(),
+      padding: EdgeInsets.all(24.w),
+      itemCount: c.budgets.length,
+      separatorBuilder: (_, __) => SizedBox(height: 16.h),
+      itemBuilder: (context, index) {
+        final data = c.budgets[index];
+        final cat = data.budget.category.value;
+        final limit = data.budget.limitAmount;
+        final spent = data.spentAmount;
+        final double progress = limit > 0 ? (spent / limit) : 0.0;
+
+        Color progressColor = AppColors.primary;
+        if (progress >= 1.0) {
+          progressColor = AppColors.error;
+        } else if (progress >= 0.8) {
+          progressColor = const Color(0xFFF59E0B);
+        }
+
+        return InkWell(
+          onLongPress: () => _confirmDelete(context, data.budget.id),
+          borderRadius: BorderRadius.circular(16.r),
+          child: Ink(
+            padding: EdgeInsets.all(16.w),
+            decoration: BoxDecoration(
+              color: AppColors.card,
+              borderRadius: BorderRadius.circular(16.r),
+              border: Border.all(
+                  color: progress >= 1.0
+                      ? AppColors.error.withOpacity(0.3)
+                      : Colors.transparent),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Container(
+                      padding: EdgeInsets.all(10.w),
+                      decoration: const BoxDecoration(
+                          color: AppColors.background, shape: BoxShape.circle),
+                      child: Icon(
+                          IconMapper.getIcon(cat?.iconName ?? 'category'),
+                          color: AppColors.primary,
+                          size: 20.sp),
+                    ),
+                    SizedBox(width: 12.w),
+                    Expanded(
+                      child: Text(cat?.name ?? 'Lainnya',
+                          style: TextStyle(
+                              color: AppColors.textPrimary,
+                              fontSize: 14.sp,
+                              fontWeight: FontWeight.bold)),
+                    ),
+                    Text(
+                      _formatCurrency.format(spent),
+                      style: TextStyle(
+                          color: progressColor,
+                          fontSize: 14.sp,
+                          fontWeight: FontWeight.bold),
+                    ),
+                  ],
+                ),
+                SizedBox(height: 16.h),
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(8.r),
+                  child: LinearProgressIndicator(
+                    value: progress > 1.0 ? 1.0 : progress,
+                    minHeight: 8.h,
+                    backgroundColor: AppColors.background,
+                    valueColor: AlwaysStoppedAnimation<Color>(progressColor),
+                  ),
+                ),
+                SizedBox(height: 8.h),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text('${(progress * 100).toStringAsFixed(1)}% Terpakai',
+                        style: TextStyle(
+                            color: AppColors.textSecondary, fontSize: 12.sp)),
+                    Text('Batas: ${_formatCurrency.format(limit)}',
+                        style: TextStyle(
+                            color: AppColors.textSecondary, fontSize: 12.sp)),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ).animate().fadeIn(delay: (50 * index).ms).slideX(begin: 0.1);
+      },
     );
   }
 
