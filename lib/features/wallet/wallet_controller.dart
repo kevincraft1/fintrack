@@ -4,6 +4,7 @@ import 'package:isar/isar.dart';
 import '../../data/database_service.dart';
 import '../../data/models/wallet.dart';
 import '../../data/models/transaction.dart';
+import '../../data/models/category.dart';
 import '../../core/theme/app_colors.dart';
 import '../home/home_controller.dart';
 
@@ -21,6 +22,23 @@ class WalletController extends GetxController {
     wallets.assignAll(data);
   }
 
+  Future<Category> _getOrCreateInitialCategory() async {
+    final isar = DatabaseService.isar;
+    var cat = await isar.categorys
+        .filter()
+        .nameEqualTo('Penyesuaian Saldo')
+        .findFirst();
+    if (cat == null) {
+      cat = Category()
+        ..name = 'Penyesuaian Saldo'
+        ..iconName = 'account_balance_wallet'
+        ..type = 'income'
+        ..colorHex = '#10B981';
+      await isar.categorys.put(cat);
+    }
+    return cat;
+  }
+
   Future<void> addWallet(
       String name, String iconName, double initialBalance) async {
     if (name.trim().isEmpty) return;
@@ -31,9 +49,26 @@ class WalletController extends GetxController {
       ..initialBalance = initialBalance
       ..balance = initialBalance;
 
+    final isar = DatabaseService.isar;
+
     try {
-      await DatabaseService.isar.writeTxn(() async {
-        await DatabaseService.isar.wallets.put(newWallet);
+      await isar.writeTxn(() async {
+        await isar.wallets.put(newWallet);
+
+        if (initialBalance > 0) {
+          final cat = await _getOrCreateInitialCategory();
+          final txn = Transaction()
+            ..amount = initialBalance
+            ..date = DateTime.now()
+            ..note = 'Saldo Awal Dompet: ${name.trim()}';
+
+          txn.wallet.value = newWallet;
+          txn.category.value = cat;
+
+          await isar.transactions.put(txn);
+          await txn.wallet.save();
+          await txn.category.save();
+        }
       });
 
       if (Get.isRegistered<HomeController>()) {

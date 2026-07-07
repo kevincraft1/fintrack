@@ -26,6 +26,12 @@ class InputController extends GetxController {
     loadInitialData();
   }
 
+  @override
+  void onClose() {
+    noteController.dispose();
+    super.onClose();
+  }
+
   String get formattedAmount {
     if (amount.value == '0' || amount.value.isEmpty) return '0';
     final number = int.tryParse(amount.value) ?? 0;

@@ -111,14 +111,16 @@ class RecentTransactions extends StatelessWidget {
   Widget _buildTransactionItem(Transaction txn) {
     final cat = txn.category.value;
     final wallet = txn.wallet.value;
+    final type = cat?.type ?? '';
 
-    final isIncome = cat?.type == 'income';
-    final isTransfer = cat?.type == 'transfer';
+    final isAddition =
+        type == 'income' || type == 'debt_in' || type == 'debt_collect';
+    final isTransfer = type == 'transfer';
 
-    final operator = isTransfer ? '' : (isIncome ? '+' : '-');
+    final operator = isTransfer ? '' : (isAddition ? '+' : '-');
     final amountColor = isTransfer
         ? const Color(0xFF3B82F6)
-        : (isIncome ? AppColors.primary : AppColors.error);
+        : (isAddition ? AppColors.primary : AppColors.error);
 
     String subtitleText = wallet?.name ?? '-';
     if (isTransfer) {

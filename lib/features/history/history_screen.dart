@@ -175,13 +175,15 @@ class HistoryScreen extends StatelessWidget {
         NumberFormat.currency(locale: 'id', symbol: 'Rp ', decimalDigits: 0);
     final formatDate = DateFormat('dd MMM yyyy • HH:mm').format(txn.date);
 
-    final isIncome = category?.type == 'income';
-    final isTransfer = category?.type == 'transfer';
+    final type = category?.type ?? '';
+    final isAddition =
+        type == 'income' || type == 'debt_in' || type == 'debt_collect';
+    final isTransfer = type == 'transfer';
 
-    final operator = isTransfer ? '' : (isIncome ? '+' : '-');
+    final operator = isTransfer ? '' : (isAddition ? '+' : '-');
     final amountColor = isTransfer
         ? const Color(0xFF3B82F6)
-        : (isIncome ? AppColors.primary : AppColors.error);
+        : (isAddition ? AppColors.primary : AppColors.error);
     final hasNote = txn.note != null && txn.note!.isNotEmpty;
 
     String subtitleText = formatDate;

@@ -64,7 +64,14 @@ const DebtSchema = CollectionSchema(
   deserializeProp: _debtDeserializeProp,
   idName: r'id',
   indexes: {},
-  links: {},
+  links: {
+    r'wallet': LinkSchema(
+      id: 4577985007602188555,
+      name: r'wallet',
+      target: r'Wallet',
+      single: true,
+    )
+  },
   embeddedSchemas: {},
   getId: _debtGetId,
   getLinks: _debtGetLinks,
@@ -157,11 +164,12 @@ Id _debtGetId(Debt object) {
 }
 
 List<IsarLinkBase<dynamic>> _debtGetLinks(Debt object) {
-  return [];
+  return [object.wallet];
 }
 
 void _debtAttach(IsarCollection<dynamic> col, Id id, Debt object) {
   object.id = id;
+  object.wallet.attach(col, col.isar.collection<Wallet>(), r'wallet', id);
 }
 
 extension DebtQueryWhereSort on QueryBuilder<Debt, Debt, QWhere> {
@@ -936,7 +944,20 @@ extension DebtQueryFilter on QueryBuilder<Debt, Debt, QFilterCondition> {
 
 extension DebtQueryObject on QueryBuilder<Debt, Debt, QFilterCondition> {}
 
-extension DebtQueryLinks on QueryBuilder<Debt, Debt, QFilterCondition> {}
+extension DebtQueryLinks on QueryBuilder<Debt, Debt, QFilterCondition> {
+  QueryBuilder<Debt, Debt, QAfterFilterCondition> wallet(
+      FilterQuery<Wallet> q) {
+    return QueryBuilder.apply(this, (query) {
+      return query.link(q, r'wallet');
+    });
+  }
+
+  QueryBuilder<Debt, Debt, QAfterFilterCondition> walletIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.linkLength(r'wallet', 0, true, 0, true);
+    });
+  }
+}
 
 extension DebtQuerySortBy on QueryBuilder<Debt, Debt, QSortBy> {
   QueryBuilder<Debt, Debt, QAfterSortBy> sortByCreatedAt() {

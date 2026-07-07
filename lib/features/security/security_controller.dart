@@ -4,21 +4,42 @@ import 'package:local_auth/local_auth.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../core/theme/app_colors.dart';
 
-class SecurityController extends GetxController {
+class SecurityController extends GetxController with WidgetsBindingObserver {
   final LocalAuthentication auth = LocalAuthentication();
   var isAuthenticated = false.obs;
   var isSupported = false.obs;
-  var isAppLockEnabled = false.obs; // Secara default, kunci mati
+  var isAppLockEnabled = false.obs;
 
   @override
   void onInit() {
     super.onInit();
+    WidgetsBinding.instance.addObserver(this);
     _loadSettingsAndVerify();
+  }
+
+  @override
+  void onClose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.onClose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (isAppLockEnabled.value) {
+      if (state == AppLifecycleState.paused ||
+          state == AppLifecycleState.inactive ||
+          state == AppLifecycleState.hidden) {
+        isAuthenticated.value = false;
+      } else if (state == AppLifecycleState.resumed) {
+        if (!isAuthenticated.value) {
+          executeAuthentication();
+        }
+      }
+    }
   }
 
   Future<void> _loadSettingsAndVerify() async {
     final prefs = await SharedPreferences.getInstance();
-    // Tarik preferensi terakhir dari memori fisik Android
     isAppLockEnabled.value = prefs.getBool('app_lock_enabled') ?? false;
 
     try {
@@ -27,9 +48,9 @@ class SecurityController extends GetxController {
       isSupported.value = hasHardware || isDeviceSupported;
 
       if (isSupported.value && isAppLockEnabled.value) {
-        executeAuthentication(); // Jika aktif, tahan di layar kunci
+        executeAuthentication();
       } else {
-        isAuthenticated.value = true; // Jika mati, bypass langsung ke Home
+        isAuthenticated.value = true;
       }
     } catch (_) {
       isAuthenticated.value = true;
@@ -54,7 +75,6 @@ class SecurityController extends GetxController {
 
   Future<void> toggleAppLock(bool value) async {
     try {
-      // Wajibkan verifikasi biometrik sebelum mengubah pengaturan
       final success = await auth.authenticate(
         localizedReason: value
             ? 'Verifikasi identitas untuk mengaktifkan kunci'

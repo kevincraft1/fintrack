@@ -38,7 +38,21 @@ const TransactionSchema = CollectionSchema(
   deserialize: _transactionDeserialize,
   deserializeProp: _transactionDeserializeProp,
   idName: r'id',
-  indexes: {},
+  indexes: {
+    r'date': IndexSchema(
+      id: -7552997827385218417,
+      name: r'date',
+      unique: false,
+      replace: false,
+      properties: [
+        IndexPropertySchema(
+          name: r'date',
+          type: IndexType.value,
+          caseSensitive: false,
+        )
+      ],
+    )
+  },
   links: {
     r'category': LinkSchema(
       id: 9039453146683828404,
@@ -56,6 +70,12 @@ const TransactionSchema = CollectionSchema(
       id: -4029663867618780578,
       name: r'toWallet',
       target: r'Wallet',
+      single: true,
+    ),
+    r'debt': LinkSchema(
+      id: 8020120365433694556,
+      name: r'debt',
+      target: r'Debt',
       single: true,
     )
   },
@@ -129,7 +149,7 @@ Id _transactionGetId(Transaction object) {
 }
 
 List<IsarLinkBase<dynamic>> _transactionGetLinks(Transaction object) {
-  return [object.category, object.wallet, object.toWallet];
+  return [object.category, object.wallet, object.toWallet, object.debt];
 }
 
 void _transactionAttach(
@@ -138,6 +158,7 @@ void _transactionAttach(
   object.category.attach(col, col.isar.collection<Category>(), r'category', id);
   object.wallet.attach(col, col.isar.collection<Wallet>(), r'wallet', id);
   object.toWallet.attach(col, col.isar.collection<Wallet>(), r'toWallet', id);
+  object.debt.attach(col, col.isar.collection<Debt>(), r'debt', id);
 }
 
 extension TransactionQueryWhereSort
@@ -145,6 +166,14 @@ extension TransactionQueryWhereSort
   QueryBuilder<Transaction, Transaction, QAfterWhere> anyId() {
     return QueryBuilder.apply(this, (query) {
       return query.addWhereClause(const IdWhereClause.any());
+    });
+  }
+
+  QueryBuilder<Transaction, Transaction, QAfterWhere> anyDate() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(
+        const IndexWhereClause.any(indexName: r'date'),
+      );
     });
   }
 }
@@ -212,6 +241,96 @@ extension TransactionQueryWhere
         lower: lowerId,
         includeLower: includeLower,
         upper: upperId,
+        includeUpper: includeUpper,
+      ));
+    });
+  }
+
+  QueryBuilder<Transaction, Transaction, QAfterWhereClause> dateEqualTo(
+      DateTime date) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IndexWhereClause.equalTo(
+        indexName: r'date',
+        value: [date],
+      ));
+    });
+  }
+
+  QueryBuilder<Transaction, Transaction, QAfterWhereClause> dateNotEqualTo(
+      DateTime date) {
+    return QueryBuilder.apply(this, (query) {
+      if (query.whereSort == Sort.asc) {
+        return query
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'date',
+              lower: [],
+              upper: [date],
+              includeUpper: false,
+            ))
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'date',
+              lower: [date],
+              includeLower: false,
+              upper: [],
+            ));
+      } else {
+        return query
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'date',
+              lower: [date],
+              includeLower: false,
+              upper: [],
+            ))
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'date',
+              lower: [],
+              upper: [date],
+              includeUpper: false,
+            ));
+      }
+    });
+  }
+
+  QueryBuilder<Transaction, Transaction, QAfterWhereClause> dateGreaterThan(
+    DateTime date, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IndexWhereClause.between(
+        indexName: r'date',
+        lower: [date],
+        includeLower: include,
+        upper: [],
+      ));
+    });
+  }
+
+  QueryBuilder<Transaction, Transaction, QAfterWhereClause> dateLessThan(
+    DateTime date, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IndexWhereClause.between(
+        indexName: r'date',
+        lower: [],
+        upper: [date],
+        includeUpper: include,
+      ));
+    });
+  }
+
+  QueryBuilder<Transaction, Transaction, QAfterWhereClause> dateBetween(
+    DateTime lowerDate,
+    DateTime upperDate, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IndexWhereClause.between(
+        indexName: r'date',
+        lower: [lowerDate],
+        includeLower: includeLower,
+        upper: [upperDate],
         includeUpper: includeUpper,
       ));
     });
@@ -581,6 +700,19 @@ extension TransactionQueryLinks
       toWalletIsNull() {
     return QueryBuilder.apply(this, (query) {
       return query.linkLength(r'toWallet', 0, true, 0, true);
+    });
+  }
+
+  QueryBuilder<Transaction, Transaction, QAfterFilterCondition> debt(
+      FilterQuery<Debt> q) {
+    return QueryBuilder.apply(this, (query) {
+      return query.link(q, r'debt');
+    });
+  }
+
+  QueryBuilder<Transaction, Transaction, QAfterFilterCondition> debtIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.linkLength(r'debt', 0, true, 0, true);
     });
   }
 }

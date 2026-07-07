@@ -60,6 +60,24 @@ class CategoryController extends GetxController {
   }
 
   Future<void> deleteCategory(int id) async {
+    final category = await DatabaseService.isar.categorys.get(id);
+    if (category == null) return;
+
+    if (category.type == 'transfer' ||
+        category.type == 'debt_in' ||
+        category.type == 'debt_out' ||
+        category.type == 'debt_pay' ||
+        category.type == 'debt_collect') {
+      Get.snackbar(
+        'Penolakan Sistem',
+        'Kategori sistem (bawaan) tidak diizinkan untuk dihapus.',
+        backgroundColor: AppColors.error,
+        colorText: Colors.white,
+        snackPosition: SnackPosition.BOTTOM,
+      );
+      return;
+    }
+
     final linkedTxnCount = await DatabaseService.isar.transactions
         .filter()
         .category((q) => q.idEqualTo(id))

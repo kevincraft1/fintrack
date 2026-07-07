@@ -1,4 +1,5 @@
 import 'package:isar/isar.dart';
+import 'wallet.dart';
 
 part 'debt.g.dart';
 
@@ -6,13 +7,14 @@ part 'debt.g.dart';
 class Debt {
   Id id = Isar.autoIncrement;
 
-  late String personName; // Nama orang yang berhutang / kita hutangi
-  late double totalAmount; // Total uang awal
-  late double remainingAmount; // Sisa yang belum dilunasi
-  late String
-      type; // 'lend' (Piutang / Uang kita di orang) atau 'borrow' (Hutang / Kita pinjam uang)
-  late DateTime dueDate; // Tanggal jatuh tempo
-  late DateTime createdAt; // Tanggal dicatat
+  late String personName;
+  late double totalAmount;
+  late double remainingAmount;
+  late String type;
+  late DateTime dueDate;
+  late DateTime createdAt;
   String? note;
-  bool isSettled = false; // Status Lunas (true/false)
+  bool isSettled = false;
+
+  final wallet = IsarLink<Wallet>();
 }
