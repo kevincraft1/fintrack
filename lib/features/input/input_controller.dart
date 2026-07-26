@@ -97,8 +97,17 @@ class InputController extends GetxController {
 
   Future<void> saveTransaction() async {
     final parsedAmount = double.tryParse(amount.value) ?? 0.0;
+    
+    // FIX: Validasi maximum amount untuk mencegah overflow (max 1 miliar)
+    const maxAmount = 1000000000.0;
     if (parsedAmount <= 0) {
       Get.snackbar('Error', 'Nominal tidak boleh 0',
+          backgroundColor: Colors.red, colorText: Colors.white);
+      return;
+    }
+    
+    if (parsedAmount > maxAmount) {
+      Get.snackbar('Error', 'Nominal terlalu besar (maksimal Rp ${NumberFormat.currency(locale: 'id', symbol: '', decimalDigits: 0).format(maxAmount)})',
           backgroundColor: Colors.red, colorText: Colors.white);
       return;
     }

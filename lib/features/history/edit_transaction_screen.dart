@@ -47,11 +47,17 @@ class _EditTransactionScreenState extends State<EditTransactionScreen> {
 
     setState(() {
       categories = data;
-      // SOLUSI MUTLAK: Mencocokkan ID agar memory instance sama persis dengan list Dropdown
+      // FIX: Null safety check - pastikan kategori tidak null sebelum assign
       final txnCategoryId = widget.transaction.category.value?.id;
       selectedCategory =
           categories.firstWhereOrNull((c) => c.id == txnCategoryId) ??
               (categories.isNotEmpty ? categories.first : null);
+      
+      // Validasi tambahan: jika selectedCategory masih null, gunakan default
+      if (selectedCategory == null && categories.isNotEmpty) {
+        selectedCategory = categories.first;
+      }
+      
       isLoading = false;
     });
   }

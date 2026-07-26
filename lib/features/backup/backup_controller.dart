@@ -60,20 +60,35 @@ class BackupController extends GetxController {
         final encryptedBytes = await importFile.readAsBytes();
         final decryptedBytes = _processBytes(encryptedBytes);
 
+        // FIX: Tutup semua instance Isar dengan aman sebelum restore
         await DatabaseService.isar.close();
+        
+        // Beri jeda untuk memastikan semua operasi database selesai
+        await Future.delayed(const Duration(milliseconds: 500));
 
         final dir = await getApplicationDocumentsDirectory();
         final dbPath = '${dir.path}/default.isar';
         final dbFile = File(dbPath);
 
         await dbFile.writeAsBytes(decryptedBytes);
+        
+        // Re-initialize database
         await DatabaseService.init();
 
+        // FIX: Refresh semua controller dengan error handling
         if (Get.isRegistered<HomeController>()) {
-          Get.find<HomeController>().loadHomeData();
+          try {
+            Get.find<HomeController>().loadHomeData();
+          } catch (e) {
+            debugPrint('Error refreshing HomeController: $e');
+          }
         }
         if (Get.isRegistered<ProfileController>()) {
-          Get.find<ProfileController>().loadProfileStats();
+          try {
+            Get.find<ProfileController>().loadProfileStats();
+          } catch (e) {
+            debugPrint('Error refreshing ProfileController: $e');
+          }
         }
 
         Get.snackbar(
@@ -85,7 +100,12 @@ class BackupController extends GetxController {
         );
       }
     } catch (e) {
-      await DatabaseService.init();
+      // FIX: Pastikan database diinisialisasi ulang jika terjadi error
+      try {
+        await DatabaseService.init();
+      } catch (initError) {
+        debugPrint('Critical: Failed to reinitialize database: $initError');
+      }
       _showError('Gagal memulihkan data. File korup atau tidak valid.');
     }
   }
