@@ -43,4 +43,20 @@
             <data android:scheme="https" />
         </intent>
     </queries>
+    
+    <!-- Storage permissions for export/import functionality -->
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" 
+        android:maxSdkVersion="32"/>
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" 
+        android:maxSdkVersion="32"/>
+    <uses-permission android:name="android.permission.READ_MEDIA_IMAGES"/>
+    <uses-permission android:name="android.permission.READ_MEDIA_VIDEO"/>
+    <uses-permission android:name="android.permission.READ_MEDIA_AUDIO"/>
+    
+    <!-- Camera permission for potential future features -->
+    <uses-permission android:name="android.permission.CAMERA"/>
+    
+    <!-- Internet permission (only if needed for future cloud sync) -->
+    <!-- Currently not used - app works 100% offline -->
+    <!-- <uses-permission android:name="android.permission.INTERNET"/> -->
 </manifest>
