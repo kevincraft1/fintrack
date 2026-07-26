@@ -2,7 +2,7 @@ import 'package:isar/isar.dart';
 
 part 'category.g.dart';
 
-@collection
+@Collection(accessor: 'categories')
 class Category {
   Id id = Isar.autoIncrement;
 

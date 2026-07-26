@@ -14,14 +14,10 @@ class LockScreen extends StatefulWidget {
 }
 
 class _LockScreenState extends State<LockScreen> {
-  final SecurityController c = Get.put(SecurityController());
+  final SecurityController c = Get.put(SecurityController(), permanent: true);
 
   @override
   void dispose() {
-    // Cleanup untuk mencegah memory leak
-    if (Get.isRegistered<SecurityController>()) {
-      Get.delete<SecurityController>();
-    }
     super.dispose();
   }
 
@@ -33,7 +29,7 @@ class _LockScreenState extends State<LockScreen> {
         if (c.isAuthenticated.value) {
           // Gunakan WidgetsBinding.instance.addPostFrameCallback untuk navigasi aman
           WidgetsBinding.instance.addPostFrameCallback((_) {
-            Get.offAll(() => const HomeScreen());
+            Get.offAll(() => HomeScreen());
           });
           return const SizedBox.shrink();
         }

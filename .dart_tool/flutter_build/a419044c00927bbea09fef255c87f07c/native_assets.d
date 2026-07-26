@@ -1,0 +1,1 @@
+ /Volumes/DATA/DATA\ UTAMA/nurindra/projects/fintrack_pro/.dart_tool/flutter_build/a419044c00927bbea09fef255c87f07c/native_assets.yaml: 
