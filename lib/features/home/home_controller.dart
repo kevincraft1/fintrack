@@ -11,6 +11,8 @@ class HomeController extends GetxController {
   var recentTransactions = <Transaction>[].obs;
   var wallets = <Wallet>[].obs;
   var walletBalances = <int, double>{}.obs;
+  var isLoading = false.obs;
+  var errorMessage = ''.obs;
 
   @override
   void onInit() {
@@ -19,57 +21,67 @@ class HomeController extends GetxController {
   }
 
   Future<void> loadHomeData() async {
-    final now = DateTime.now();
-    final startOfMonth = DateTime(now.year, now.month, 1);
-    final isar = DatabaseService.isar;
+    try {
+      isLoading.value = true;
+      errorMessage.value = '';
+      
+      final now = DateTime.now();
+      final startOfMonth = DateTime(now.year, now.month, 1);
+      final isar = DatabaseService.isar;
 
-    final allWallets = await isar.wallets.where().anyId().findAll();
+      final allWallets = await isar.wallets.where().anyId().findAll();
 
-    double balance = 0.0;
-    Map<int, double> wBalances = {};
+      double balance = 0.0;
+      Map<int, double> wBalances = {};
 
-    for (var w in allWallets) {
-      wBalances[w.id] = w.balance;
-      balance += w.balance;
-    }
-
-    final monthlyTxn = await isar.transactions
-        .filter()
-        .dateGreaterThan(startOfMonth.subtract(const Duration(seconds: 1)))
-        .findAll();
-
-    double income = 0.0;
-    double expense = 0.0;
-
-    for (var txn in monthlyTxn) {
-      await txn.category.load();
-      final type = txn.category.value?.type;
-
-      if (type == 'income') {
-        income += txn.amount;
-      } else if (type == 'expense') {
-        expense += txn.amount;
+      for (var w in allWallets) {
+        wBalances[w.id] = w.balance;
+        balance += w.balance;
       }
+
+      final monthlyTxn = await isar.transactions
+          .filter()
+          .dateGreaterThan(startOfMonth.subtract(const Duration(seconds: 1)))
+          .findAll();
+
+      double income = 0.0;
+      double expense = 0.0;
+
+      for (var txn in monthlyTxn) {
+        await txn.category.load();
+        final type = txn.category.value?.type;
+
+        if (type == 'income') {
+          income += txn.amount;
+        } else if (type == 'expense') {
+          expense += txn.amount;
+        }
+      }
+
+      final recent = await isar.transactions
+          .where()
+          .anyId()
+          .sortByDateDesc()
+          .limit(5)
+          .findAll();
+
+      for (var txn in recent) {
+        await txn.category.load();
+        await txn.wallet.load();
+        await txn.toWallet.load();
+      }
+
+      wallets.assignAll(allWallets);
+      walletBalances.assignAll(wBalances);
+      totalBalance.value = balance;
+      totalIncome.value = income;
+      totalExpense.value = expense;
+      recentTransactions.assignAll(recent);
+    } catch (e) {
+      errorMessage.value = 'Gagal memuat data: ${e.toString()}';
+      Get.snackbar('Error', errorMessage.value);
+    } finally {
+      isLoading.value = false;
     }
-
-    final recent = await isar.transactions
-        .where()
-        .anyId()
-        .sortByDateDesc()
-        .limit(5)
-        .findAll();
-
-    for (var txn in recent) {
-      await txn.category.load();
-      await txn.wallet.load();
-      await txn.toWallet.load();
-    }
-
-    wallets.assignAll(allWallets);
-    walletBalances.assignAll(wBalances);
-    totalBalance.value = balance;
-    totalIncome.value = income;
-    totalExpense.value = expense;
-    recentTransactions.assignAll(recent);
   }
 }

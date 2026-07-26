@@ -40,7 +40,7 @@ class _EditTransactionScreenState extends State<EditTransactionScreen> {
 
   Future<void> _loadCategories() async {
     final txnType = widget.transaction.category.value?.type ?? 'expense';
-    final data = await DatabaseService.isar.categorys
+    final data = await DatabaseService.isar.categories
         .filter()
         .typeEqualTo(txnType)
         .findAll();

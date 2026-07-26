@@ -22,7 +22,7 @@ class CategoryController extends GetxController {
   }
 
   Future<void> loadCategories() async {
-    final data = await DatabaseService.isar.categorys
+    final data = await DatabaseService.isar.categories
         .filter()
         .typeEqualTo(selectedType.value)
         .findAll();
@@ -40,7 +40,7 @@ class CategoryController extends GetxController {
 
     try {
       await DatabaseService.isar.writeTxn(() async {
-        await DatabaseService.isar.categorys.put(newCategory);
+        await DatabaseService.isar.categories.put(newCategory);
       });
 
       loadCategories();
@@ -60,7 +60,7 @@ class CategoryController extends GetxController {
   }
 
   Future<void> deleteCategory(int id) async {
-    final category = await DatabaseService.isar.categorys.get(id);
+    final category = await DatabaseService.isar.categories.get(id);
     if (category == null) return;
 
     if (category.type == 'transfer' ||
@@ -97,7 +97,7 @@ class CategoryController extends GetxController {
 
     try {
       await DatabaseService.isar.writeTxn(() async {
-        await DatabaseService.isar.categorys.delete(id);
+        await DatabaseService.isar.categories.delete(id);
       });
 
       loadCategories();

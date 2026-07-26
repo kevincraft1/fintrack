@@ -33,7 +33,7 @@ class DatabaseService {
   }
 
   static Future<void> _seedDefaultData() async {
-    final categoryCount = await isar.categorys.count();
+    final categoryCount = await isar.categories.count();
 
     if (categoryCount == 0) {
       final defaultCategories = [
@@ -84,7 +84,7 @@ class DatabaseService {
           ..colorHex = '#9CA3AF',
       ];
       await isar
-          .writeTxn(() async => await isar.categorys.putAll(defaultCategories));
+          .writeTxn(() async => await isar.categories.putAll(defaultCategories));
     }
 
     final walletCount = await isar.wallets.count();

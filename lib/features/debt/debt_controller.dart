@@ -62,14 +62,14 @@ class DebtController extends GetxController {
   Future<Category> _getOrCreateSystemCategory(
       String typeName, String type) async {
     final isar = DatabaseService.isar;
-    var cat = await isar.categorys.filter().nameEqualTo(typeName).findFirst();
+    var cat = await isar.categories.filter().nameEqualTo(typeName).findFirst();
     if (cat == null) {
       cat = Category()
         ..name = typeName
         ..iconName = 'account_balance'
         ..type = type
         ..colorHex = '#6B7280';
-      await isar.categorys.put(cat);
+      await isar.categories.put(cat);
     }
     return cat;
   }

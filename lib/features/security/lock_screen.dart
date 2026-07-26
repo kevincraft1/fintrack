@@ -6,10 +6,24 @@ import 'security_controller.dart';
 import '../home/home_screen.dart';
 import '../../core/theme/app_colors.dart';
 
-class LockScreen extends StatelessWidget {
+class LockScreen extends StatefulWidget {
+  const LockScreen({super.key});
+
+  @override
+  State<LockScreen> createState() => _LockScreenState();
+}
+
+class _LockScreenState extends State<LockScreen> {
   final SecurityController c = Get.put(SecurityController());
 
-  LockScreen({super.key});
+  @override
+  void dispose() {
+    // Cleanup untuk mencegah memory leak
+    if (Get.isRegistered<SecurityController>()) {
+      Get.delete<SecurityController>();
+    }
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -17,7 +31,11 @@ class LockScreen extends StatelessWidget {
       backgroundColor: AppColors.background,
       body: Obx(() {
         if (c.isAuthenticated.value) {
-          return HomeScreen();
+          // Gunakan WidgetsBinding.instance.addPostFrameCallback untuk navigasi aman
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            Get.offAll(() => const HomeScreen());
+          });
+          return const SizedBox.shrink();
         }
         return SafeArea(
           child: Center(
