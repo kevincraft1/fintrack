@@ -11,13 +11,27 @@ class StatisticsController extends GetxController {
   var categoryColors = <String, Color>{}.obs;
 
   final List<Color> _colorPalette = [
-    const Color(0xFF3B82F6),
-    const Color(0xFF10B981),
-    const Color(0xFFF59E0B),
-    const Color(0xFFEF4444),
-    const Color(0xFF8B5CF6),
-    const Color(0xFFEC4899),
+    const Color(0xFF3B82F6), // Biru - default
+    const Color(0xFF10B981), // Hijau Emerald
+    const Color(0xFFF59E0B), // Kuning Amber
+    const Color(0xFFEF4444), // Merah Red
+    const Color(0xFF8B5CF6), // Ungu Violet
+    const Color(0xFFEC4899), // Pink
+    const Color(0xFF06B6D4), // Cyan
+    const Color(0xFF84CC16), // Lime
+    const Color(0xFFA855F7), // Purple
+    const Color(0xFF14B8A6), // Teal
   ];
+  
+  // FIX: Dynamic color generation untuk kategori lebih dari 10
+  Color getColorForCategory(String categoryName, int index) {
+    if (index < _colorPalette.length) {
+      return _colorPalette[index];
+    }
+    // Generate color berdasarkan hash nama kategori untuk konsistensi
+    final hash = categoryName.hashCode;
+    return Color((hash & 0x00FFFFFF) | 0xFF000000);
+  }
 
   @override
   void onInit() {
@@ -54,9 +68,8 @@ class StatisticsController extends GetxController {
           expensesMap[cat.name] = (expensesMap[cat.name] ?? 0) + txn.amount;
 
           if (!categoryColors.containsKey(cat.name)) {
-            categoryColors[cat.name] =
-                _colorPalette[colorIndex % _colorPalette.length];
-            colorIndex++;
+            final colorIndex = categoryColors.length;
+            categoryColors[cat.name] = getColorForCategory(cat.name, colorIndex);
           }
         }
       }

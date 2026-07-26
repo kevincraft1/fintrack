@@ -150,9 +150,10 @@ class GoalController extends GetxController {
   }
 
   Future<void> deleteGoal(int id) async {
-    // Catatan: Jika impian dihapus, apakah uangnya kembali ke dompet?
-    // Untuk efisiensi versi 1.0.0, kita biarkan hanya hapus goal-nya saja
-    // karena riwayat pengeluarannya sudah sah tercatat.
+    // FIX: Hapus komentar outdated dan perbaiki dokumentasi
+    // Catatan: Jika impian dihapus, uang tidak kembali ke dompet secara otomatis
+    // karena riwayat pengeluaran sudah sah tercatat dalam sistem akuntansi.
+    // User perlu membuat transaksi penarikan manual jika ingin mengembalikan dana.
     await DatabaseService.isar.writeTxn(() async {
       await DatabaseService.isar.goals.delete(id);
     });

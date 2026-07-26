@@ -36,10 +36,14 @@ class ProfileController extends GetxController {
     lifetimeExpense.value = tExpense;
     totalTransactionsCount.value = allTxns.length;
 
+    // FIX: Prevent division by zero dengan validasi yang lebih robust
     if (tIncome == 0 && tExpense == 0) {
       financialHealth.value = 'Baru Memulai';
     } else if (tIncome == 0 && tExpense > 0) {
       financialHealth.value = 'Kritis';
+    } else if (tIncome <= 0) {
+      // Handle edge case dimana income negatif atau sangat kecil
+      financialHealth.value = 'Tidak Valid';
     } else {
       final ratio = tExpense / tIncome;
       if (ratio <= 0.5) {

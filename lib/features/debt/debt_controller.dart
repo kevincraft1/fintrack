@@ -67,7 +67,9 @@ class DebtController extends GetxController {
       cat = Category()
         ..name = typeName
         ..iconName = 'account_balance'
-        ..type = type
+        // FIX: Standardisasi type kategori debt agar konsisten dengan filter statistik
+        // Gunakan 'expense' atau 'income' sesuai arah arus kas untuk kompatibilitas
+        ..type = (type == 'debt_in' || type == 'debt_collect') ? 'income' : 'expense'
         ..colorHex = '#6B7280';
       await isar.categories.put(cat);
     }
