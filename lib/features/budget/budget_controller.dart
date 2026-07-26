@@ -36,7 +36,7 @@ class BudgetController extends GetxController {
   }
 
   Future<void> loadExpenseCategories() async {
-    final data = await DatabaseService.isar.categorys
+    final data = await DatabaseService.isar.categories
         .filter()
         .typeEqualTo('expense')
         .findAll();

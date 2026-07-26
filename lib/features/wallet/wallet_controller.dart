@@ -24,7 +24,7 @@ class WalletController extends GetxController {
 
   Future<Category> _getOrCreateInitialCategory() async {
     final isar = DatabaseService.isar;
-    var cat = await isar.categorys
+    var cat = await isar.categories
         .filter()
         .nameEqualTo('Penyesuaian Saldo')
         .findFirst();
@@ -34,7 +34,7 @@ class WalletController extends GetxController {
         ..iconName = 'account_balance_wallet'
         ..type = 'income'
         ..colorHex = '#10B981';
-      await isar.categorys.put(cat);
+      await isar.categories.put(cat);
     }
     return cat;
   }

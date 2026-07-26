@@ -104,7 +104,7 @@ class GoalController extends GetxController {
         await isar.wallets.put(wallet);
 
         // 3. INJEKSI AKUNTANSI ZERO ERROR: Catat sebagai transaksi pengeluaran
-        var goalCat = await isar.categorys
+        var goalCat = await isar.categories
             .filter()
             .nameEqualTo('Tabungan Impian')
             .findFirst();
@@ -115,7 +115,7 @@ class GoalController extends GetxController {
             ..iconName = 'star'
             ..type = 'expense'
             ..colorHex = '#F59E0B';
-          await isar.categorys.put(goalCat);
+          await isar.categories.put(goalCat);
         }
 
         final txn = Transaction()

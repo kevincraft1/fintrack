@@ -60,7 +60,7 @@ class InputController extends GetxController {
       return;
     }
 
-    categories.value = await DatabaseService.isar.categorys
+    categories.value = await DatabaseService.isar.categories
         .filter()
         .typeEqualTo(selectedType.value)
         .findAll();
@@ -141,7 +141,7 @@ class InputController extends GetxController {
           txn.wallet.value = selectedWallet.value;
           txn.toWallet.value = selectedToWallet.value;
 
-          var transferCat = await isar.categorys
+          var transferCat = await isar.categories
               .filter()
               .nameEqualTo('Transfer Internal')
               .findFirst();
@@ -152,7 +152,7 @@ class InputController extends GetxController {
               ..iconName = 'swap_horiz'
               ..type = 'transfer'
               ..colorHex = '#3B82F6';
-            await isar.categorys.put(transferCat);
+            await isar.categories.put(transferCat);
           }
           txn.category.value = transferCat;
 
@@ -188,7 +188,7 @@ class InputController extends GetxController {
       Get.snackbar('Sukses', 'Transaksi berhasil dicatat',
           backgroundColor: Colors.green, colorText: Colors.white);
     } catch (e) {
-      Get.snackbar('Sistem Error', 'Terjadi kesalahan saat menyimpan data',
+      Get.snackbar('Sistem Error', 'Terjadi kesalahan saat menyimpan data: ${e.toString()}',
           backgroundColor: Colors.red, colorText: Colors.white);
     }
   }

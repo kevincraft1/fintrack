@@ -35,7 +35,7 @@ class HistoryController extends GetxController {
   }
 
   Future<void> fetchCategories() async {
-    final data = await DatabaseService.isar.categorys.where().anyId().findAll();
+    final data = await DatabaseService.isar.categories.where().anyId().findAll();
     categories.assignAll(data);
   }
 
